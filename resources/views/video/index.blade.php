@@ -9,11 +9,14 @@
         <div>
             <div>
                 <video width="100%" id="video" controls poster="{{$video->thumbnail}}">
-                    <source src="{{ $files->video }}">
+                    <source src="{{ $files->video->url }}">
+                    @foreach ($files->subs as $sub)
+                        <track label="{{ $sub->lang }}" srclang="{{ $sub->lang }}" kind="subtitles" src="{{ $sub->url }}">
+                    @endforeach
                 </video>
 
                 <audio id="audio">
-                    <source src="{{ $files->audio }}">
+                    <source src="{{ $files->audio->url }}">
                 </audio>
             </div>
             <div style="height: 100px; overflow: scroll; white-space: nowrap;" id="live-chat"></div>
@@ -39,9 +42,9 @@
 
         <script type="text/javascript">
             window.app = window.app || {};
-            app.liveChatResource = {!! json_encode($files->live_chat) !!};
+            app.liveChatResource = {!! json_encode($files->live_chat->url) !!};
         </script>
-        <script type="text/javascript" src="{{ url('js/video/video.js') }}"></script>
-        <script type="text/javascript" src="{{ url('js/video/live-chat.js') }}"></script>
+        <script type="text/javascript" src="/js/video/video.js"></script>
+        <script type="text/javascript" src="/js/video/live-chat.js"></script>
     </body>
 </html>

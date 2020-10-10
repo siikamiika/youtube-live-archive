@@ -18,6 +18,7 @@ class CreateVideoFilesTable extends Migration
             $table->string('video_id');
             $table->text('filename');
             $table->enum('type', ['video', 'audio', 'sub', 'live_chat']);
+            $table->string('lang')->nullable();
             $table->text('raw_details')->nullable();
             $table->timestamps();
             $table->index('video_id');

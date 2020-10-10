@@ -17,15 +17,17 @@ class ArchiveYoutubeVideo implements ShouldQueue
     const FFPROBE_BIN = 'ffprobe';
 
     private $videoId = null;
+    private $force = null;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($videoQuery)
+    public function __construct($videoQuery, $force)
     {
         $this->videoId = $this->parseVideoId($videoQuery);
+        $this->force = $force;
     }
 
     /**
@@ -36,8 +38,10 @@ class ArchiveYoutubeVideo implements ShouldQueue
     public function handle()
     {
         // TODO notify user on invalid video ID
-        if (!$this->videoId || \App\Models\Video::where('id', $this->videoId)->exists()) {
-            return;
+        if (!$this->force) {
+            if (!$this->videoId || \App\Models\Video::where('id', $this->videoId)->exists()) {
+                return;
+            }
         }
 
         $videoDetails = $this->fetchVideoDetails($this->videoId);
@@ -78,12 +82,17 @@ class ArchiveYoutubeVideo implements ShouldQueue
                 continue;
             }
 
-            $videoFile = new \App\Models\VideoFile;
-            $videoFile->video_id = $video->id;
-            $videoFile->filename = basename($path);
-            $videoFile->type = $fileDetails['type'];
-            $videoFile->raw_details = json_encode($fileDetails['raw_details']);
-            $videoFile->save();
+            \App\Models\VideoFile::firstOrCreate(
+                [
+                    'video_id' => $video->id,
+                    'type' => $fileDetails['type'],
+                    'lang' => $fileDetails['lang'],
+                ],
+                [
+                    'filename' => basename($path),
+                    'raw_details' => json_encode($fileDetails['raw_details']),
+                ]
+            );
         }
 
         \DB::commit();
@@ -123,6 +132,7 @@ class ArchiveYoutubeVideo implements ShouldQueue
             if (substr($path, -strlen($extension)) === $extension) {
                 return [
                     'type' => $type,
+                    'lang' => null,
                     'raw_details' => null,
                 ];
             }
@@ -165,6 +175,8 @@ class ArchiveYoutubeVideo implements ShouldQueue
     // ]
     private function getMediaFileDetails(string $path)
     {
+        $lang = $this->getMediaFileLang($path);
+
         // extract file data with ffprobe
         $ffprobeOutput = $this->runCommand(self::FFPROBE_BIN, [
             '-loglevel', 'quiet',
@@ -192,6 +204,7 @@ class ArchiveYoutubeVideo implements ShouldQueue
                 $index = (int) $v;
                 $streamInfo[$index] = [
                     'type' => null,
+                    'lang' => $lang,
                     'raw_details' => [
                         'type' => 'ffprobe',
                         'data' => [],
@@ -203,7 +216,7 @@ class ArchiveYoutubeVideo implements ShouldQueue
                 $streamInfo[$index]['type'] = [
                     'video' => 'video',
                     'audio' => 'audio',
-                    'subtitles' => 'sub',
+                    'subtitle' => 'sub',
                 ][$v] ?? null;
             }
 
@@ -211,6 +224,13 @@ class ArchiveYoutubeVideo implements ShouldQueue
         }
 
         return $streamInfo;
+    }
+
+    private function getMediaFileLang(string $path)
+    {
+        $match = null;
+        preg_match('/\.((?:[a-z]{2})(?:[_\-][A-Z]{2})?)\.[a-z]+$/', $path, $match);
+        return $match[1] ?? null;
     }
 
     private function parseVideoId(string $videoQuery)

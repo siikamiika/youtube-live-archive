@@ -17,7 +17,7 @@ class VideoArchiveController extends BaseController
     }
 
     public function add(Request $request) {
-        ArchiveYoutubeVideo::dispatch($request->input('video'));
+        ArchiveYoutubeVideo::dispatch($request->input('video'), $request->input('force'));
         return Redirect::back();
     }
 }

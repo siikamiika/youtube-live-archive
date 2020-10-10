@@ -14,18 +14,21 @@ class VideoController extends BaseController
         $video->load('channel');
         $video->load('files');
 
-        $videoFilePath = function ($videoFile) use ($video) {
+        $videoFileDetails = function ($videoFile) use ($video) {
             if (!$videoFile) {
                 return null;
             }
-            return $videoFile->getUrl($video);
+            return (object)[
+                'url' => $videoFile->getUrl($video),
+                'lang' => $videoFile->lang ?? '',
+            ];
         };
 
         $files = (object)[
-            'video' => $videoFilePath($video->files->where('type', 'video')->first()),
-            'audio' => $videoFilePath($video->files->where('type', 'audio')->first()),
-            'subs' => $video->files->where('type', 'sub')->map($videoFilePath),
-            'live_chat' => $videoFilePath($video->files->where('type', 'live_chat')->first()),
+            'video' => $videoFileDetails($video->files->where('type', 'video')->first()),
+            'audio' => $videoFileDetails($video->files->where('type', 'audio')->first()),
+            'subs' => $video->files->where('type', 'sub')->map($videoFileDetails),
+            'live_chat' => $videoFileDetails($video->files->where('type', 'live_chat')->first()),
         ];
 
         return view('video/index', [
