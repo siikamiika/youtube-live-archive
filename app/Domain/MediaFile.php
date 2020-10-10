@@ -18,6 +18,7 @@ class MediaFile
             if (substr($path, -strlen($extension)) === $extension) {
                 return [
                     'type' => $type,
+                    'codec' => null,
                     'lang' => null,
                     'raw_details' => null,
                 ];
