@@ -4,11 +4,13 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ $video->title }} - YouTube Live Archive</title>
+
+        <link href="/css/style.css" rel="stylesheet">
     </head>
     <body>
         <div>
             <div>
-                <video width="100%" id="video" controls poster="{{$video->thumbnail}}">
+                <video id="video" controls poster="{{$video->thumbnail}}">
                     <source src="{{ $files->video->url }}">
                     @foreach ($files->subs as $sub)
                         <track label="{{ $sub->lang }}" srclang="{{ $sub->lang }}" kind="subtitles" src="{{ $sub->url }}">
@@ -21,7 +23,7 @@
                     </audio>
                 @endif
             </div>
-            <div style="height: 100px; overflow: scroll; white-space: nowrap;" id="live-chat"></div>
+            <div id="live-chat"></div>
             <h1>{{$video->title}}</h1>
             <ul>
                 <li>Duration: {{$video->duration}}</li>

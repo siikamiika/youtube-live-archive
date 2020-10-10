@@ -1,26 +1,37 @@
 (async () => {
-    class LiveChat {
-        constructor(url, videoElement, chatElement) {
-            this._url = url;
-            this._videoElement = videoElement;
+    class LiveChatRenderer {
+        constructor(chatElement) {
             this._chatElement = chatElement;
-            this._cache = [];
-            this._lineIterator = this._iterateLines();
         }
 
-        async updateLiveChat(time) {
-            // TODO use proper styling
-            // TODO only update changed element
-            // TODO implement buffer size
-            // TODO move to another class
-            const currentTimeMs = this._videoElement.currentTime * 1000;
-            this._chatElement.innerText = '';
-            for await (const chatItem of this._getRange(currentTimeMs - 15000, currentTimeMs)) {
-                for (const chatItemElement of this._renderChatItems(chatItem)) {
-                    this._chatElement.appendChild(chatItemElement);
+        async render(events) {
+            let first = true;
+            let lastId = null;
+            // TODO use timeout queue or something
+            for await (const chatItem of events) {
+                for (const chatMessageElement of this._renderChatItems(chatItem)) {
+                    if (first) {
+                        this._clearLogUntil(chatMessageElement.dataset.id);
+                        first = false;
+                        lastId = this._chatElement.lastChild?.dataset?.id;
+                    }
+                    if (lastId) {
+                        if (lastId === chatMessageElement.dataset.id) {
+                            lastId = null;
+                        }
+                        continue;
+                    }
+                    this._chatElement.appendChild(chatMessageElement);
+                    this._chatElement.scrollTop = this._chatElement.scrollHeight;
                 }
             }
-            this._chatElement.scrollTop = this._chatElement.scrollHeight;
+        }
+
+        _clearLogUntil(messageId) {
+            for (const chatMessageElement of this._chatElement.querySelectorAll('.chat-message')) {
+                if (chatMessageElement.dataset.id === messageId) { break; }
+                this._chatElement.removeChild(chatMessageElement);
+            }
         }
 
         *_renderChatItems(chatItem) {
@@ -53,6 +64,7 @@
                 if (chatAction.liveChatTextMessageRenderer) {
                     const renderer = chatAction.liveChatTextMessageRenderer;
                     const chatMessageElement = createElement('div', {classList: ['chat-message']});
+                    chatMessageElement.dataset.id = renderer.id;
                     chatMessageElement.appendChild(createElement('span', {
                         textContent: renderer?.authorName?.simpleText ?? '',
                         classList: ['chat-message-author-name'],
@@ -66,8 +78,9 @@
                     // TODO paid amount
                     const renderer = chatAction.liveChatPaidMessageRenderer;
                     const chatMessageElement = createElement('div', {classList: ['chat-message']});
+                    chatMessageElement.dataset.id = renderer.id;
                     chatMessageElement.appendChild(createElement('span', {
-                        textContent: renderer?.authorName?.startIndex ?? '',
+                        textContent: renderer?.authorName?.simpleText ?? '',
                         classList: ['chat-message-author-name'],
                     }));
                     chatMessageElement.appendChild(createElement('span', {
@@ -80,6 +93,23 @@
                     // TODO
                 }
             }
+        }
+    }
+
+    class LiveChat {
+        constructor(url, videoElement, chatElement) {
+            this._url = url;
+            this._videoElement = videoElement;
+            this._renderer = new LiveChatRenderer(chatElement);
+            this._cache = [];
+            this._lineIterator = this._iterateLines();
+        }
+
+        async updateLiveChat(time) {
+            // TODO use proper styling
+            const currentTimeMs = this._videoElement.currentTime * 1000;
+            const chatEvents = this._getRange(currentTimeMs - 15000, currentTimeMs);
+            await this._renderer.render(chatEvents);
         }
 
         // https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read
@@ -133,7 +163,7 @@
                 if (offset > end) {
                     return;
                 }
-                if (offset > start) {
+                if (offset >= start) {
                     yield chatItem;
                 }
                 prevOffset = offset;
@@ -155,5 +185,5 @@
         document.querySelector('#live-chat'),
     );
 
-    setInterval(() => liveChat.updateLiveChat(), 2000);
+    setInterval(() => liveChat.updateLiveChat(), 250);
 })();

@@ -1,0 +1,17 @@
+#live-chat {
+    height: 200px;
+    width: 90%;
+    max-width: 800px;
+    overflow: scroll;
+    word-break: break-word;
+}
+
+.chat-message-author-name {
+    color: gray;
+    padding-right: 1em;
+    white-space: nowrap;
+}
+
+#video {
+    width: 90%;
+}
