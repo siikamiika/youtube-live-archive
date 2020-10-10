@@ -16,11 +16,70 @@
             const currentTimeMs = this._videoElement.currentTime * 1000;
             this._chatElement.innerText = '';
             for await (const chatItem of this._getRange(currentTimeMs - 15000, currentTimeMs)) {
-                const chatItemElement = document.createElement('div');
-                chatItemElement.innerText = JSON.stringify(chatItem);
-                this._chatElement.appendChild(chatItemElement);
+                for (const chatItemElement of this._renderChatItems(chatItem)) {
+                    this._chatElement.appendChild(chatItemElement);
+                }
             }
             this._chatElement.scrollTop = this._chatElement.scrollHeight;
+        }
+
+        *_renderChatItems(chatItem) {
+            const actions = chatItem?.replayChatItemAction?.actions;
+            if (!actions) { return; }
+            for (const action of actions) {
+                // TODO addLiveChatTickerItemAction
+                const chatAction = action?.addChatItemAction?.item;
+                if (!chatAction) { continue; }
+
+                const createElement = (name, properties={}) => {
+                    const element = document.createElement(name);
+                    Object.assign(element, properties);
+                    return element;
+                };
+
+                const transformMessageRuns = (runs) => {
+                    const newRuns = [];
+                    for (const run of runs) {
+                        if (run.text) {
+                            newRuns.push(run.text);
+                        } else if (run.emoji) {
+                            // TODO use image
+                            newRuns.push(run.emoji.shortcuts[0])
+                        }
+                    }
+                    return newRuns.join('');
+                };
+
+                if (chatAction.liveChatTextMessageRenderer) {
+                    const renderer = chatAction.liveChatTextMessageRenderer;
+                    const chatMessageElement = createElement('div', {classList: ['chat-message']});
+                    chatMessageElement.appendChild(createElement('span', {
+                        textContent: renderer?.authorName?.simpleText ?? '',
+                        classList: ['chat-message-author-name'],
+                    }));
+                    chatMessageElement.appendChild(createElement('span', {
+                        textContent: transformMessageRuns(renderer.message.runs),
+                        classList: ['chat-message-body'],
+                    }));
+                    yield chatMessageElement;
+                } else if (chatAction.liveChatPaidMessageRenderer) {
+                    // TODO paid amount
+                    const renderer = chatAction.liveChatPaidMessageRenderer;
+                    const chatMessageElement = createElement('div', {classList: ['chat-message']});
+                    chatMessageElement.appendChild(createElement('span', {
+                        textContent: renderer?.authorName?.startIndex ?? '',
+                        classList: ['chat-message-author-name'],
+                    }));
+                    chatMessageElement.appendChild(createElement('span', {
+                        textContent: transformMessageRuns(renderer.message?.runs ?? []),
+                        classList: ['chat-message-body'],
+                    }));
+                    yield chatMessageElement;
+                } else if (chatAction.liveChatMembershipItemRenderer) {
+                    const renderer = chatAction.liveChatMembershipItemRenderer;
+                    // TODO
+                }
+            }
         }
 
         // https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read
