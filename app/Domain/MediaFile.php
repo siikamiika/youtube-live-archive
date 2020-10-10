@@ -27,8 +27,17 @@ class MediaFile
         $mediaFileDetails = self::extractMediaDetails($path);
 
         if (!isset($mediaFileDetails[0]) || !in_array($mediaFileDetails[0]['type'], ['video', 'audio', 'sub'])) {
-            Log::error(sprintf(
-                '%s has no valid streams: %s',
+            Log::debug(sprintf(
+                '%s has no streams: %s',
+                $path,
+                json_encode($mediaFileDetails),
+            ));
+            return null;
+        }
+
+        if ($mediaFileDetails[0]['type'] === 'video' && in_array($mediaFileDetails[0]['codec'], ['mjpeg', 'png'])) {
+            Log::debug(sprintf(
+                '%s is an image, skipping',
                 $path,
                 json_encode($mediaFileDetails),
             ));
@@ -90,6 +99,7 @@ class MediaFile
                 $index = (int) $v;
                 $streamInfo[$index] = [
                     'type' => null,
+                    'codec' => null,
                     'lang' => $lang,
                     'raw_details' => [
                         'type' => 'ffprobe',
@@ -104,6 +114,8 @@ class MediaFile
                     'audio' => 'audio',
                     'subtitle' => 'sub',
                 ][$v] ?? null;
+            } elseif ($k === 'codec_name') {
+                $streamInfo[$index]['codec'] = $v;
             }
 
             $streamInfo[$index]['raw_details']['data'][$k] = $v;
