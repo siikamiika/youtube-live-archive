@@ -145,6 +145,10 @@
         }
     }
 
+    if (!app.liveChatResource) {
+        return;
+    }
+
     const liveChat = new LiveChat(
         app.liveChatResource,
         document.querySelector('#video'),

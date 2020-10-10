@@ -15,9 +15,11 @@
                     @endforeach
                 </video>
 
-                <audio id="audio">
-                    <source src="{{ $files->audio->url }}">
-                </audio>
+                @if ($files->audio)
+                    <audio id="audio">
+                        <source src="{{ $files->audio->url }}">
+                    </audio>
+                @endif
             </div>
             <div style="height: 100px; overflow: scroll; white-space: nowrap;" id="live-chat"></div>
             <h1>{{$video->title}}</h1>
@@ -42,7 +44,7 @@
 
         <script type="text/javascript">
             window.app = window.app || {};
-            app.liveChatResource = {!! json_encode($files->live_chat->url) !!};
+            app.liveChatResource = {!! json_encode($files->live_chat->url ?? null) !!};
         </script>
         <script type="text/javascript" src="/js/video/video.js"></script>
         <script type="text/javascript" src="/js/video/live-chat.js"></script>
