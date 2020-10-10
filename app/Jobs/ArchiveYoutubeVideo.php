@@ -8,13 +8,14 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use \App\Domain\MediaFile;
+use \App\Domain\SystemCommand;
 
 class ArchiveYoutubeVideo implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     const YTDL_BIN = 'youtube-dl-custom';
-    const FFPROBE_BIN = 'ffprobe';
 
     private $videoId = null;
     private $force = null;
@@ -76,7 +77,7 @@ class ArchiveYoutubeVideo implements ShouldQueue
         );
 
         foreach ($this->downloadVideo($video, $channel) as $path) {
-            $fileDetails = $this->getFileDetails($path);
+            $fileDetails = MediaFile::getDetails($path);
             if (!$fileDetails) {
                 Log::warning('Unrecognized file type: ' . $path);
                 continue;
@@ -101,7 +102,7 @@ class ArchiveYoutubeVideo implements ShouldQueue
     private function fetchVideoDetails(string $videoId)
     {
         return json_decode(
-            $this->runCommand(self::YTDL_BIN, [
+            SystemCommand::run(self::YTDL_BIN, [
                 '-j',
                 $videoId,
             ]),
@@ -111,7 +112,7 @@ class ArchiveYoutubeVideo implements ShouldQueue
 
     private function downloadVideo($video, $channel)
     {
-        $this->runCommand(self::YTDL_BIN, [
+        SystemCommand::run(self::YTDL_BIN, [
             '-f', 'bestvideo,bestaudio', // don't merge files to MKV
             '--all-subs', // download all subtitles and live chat
             '-o', 'storage/app/public/video_data/%(channel_id)s/%(id)s/%(upload_date)s-%(title)s-%(id)s.%(ext)s',
@@ -120,117 +121,6 @@ class ArchiveYoutubeVideo implements ShouldQueue
         ]);
 
         return glob('storage/app/public/video_data/'.$channel->id.'/'.$video->id.'/*');
-    }
-
-    private function getFileDetails(string $path)
-    {
-        // guess file type based on extension only
-        $extensionTypes = [
-            '.live_chat.json' => 'live_chat',
-        ];
-        foreach ($extensionTypes as $extension => $type) {
-            if (substr($path, -strlen($extension)) === $extension) {
-                return [
-                    'type' => $type,
-                    'lang' => null,
-                    'raw_details' => null,
-                ];
-            }
-        }
-
-        $mediaFileDetails = $this->getMediaFileDetails($path);
-
-        if (!isset($mediaFileDetails[0]) || !in_array($mediaFileDetails[0]['type'], ['video', 'audio', 'sub'])) {
-            Log::error(sprintf(
-                '%s has no valid streams: %s',
-                $path,
-                json_encode($mediaFileDetails),
-            ));
-            return null;
-        }
-
-        if (count($mediaFileDetails) > 1) {
-            Log::warning(sprintf(
-                '%s has %s streams. Using the first one. %s',
-                $path,
-                count($mediaFileDetails),
-                json_encode($mediaFileDetails),
-            ));
-        }
-
-        return $mediaFileDetails[0];
-    }
-
-    // Current extractor: ffprobe
-    // Format:
-    // [
-    //   0 => [
-    //       'type' => 'audio'|'video'|'sub'|null,
-    //       'raw_details' => [
-    //           'type' => 'ffprobe',
-    //           'data' => [...],
-    //       ],
-    //   ],
-    //   ...
-    // ]
-    private function getMediaFileDetails(string $path)
-    {
-        $lang = $this->getMediaFileLang($path);
-
-        // extract file data with ffprobe
-        $ffprobeOutput = $this->runCommand(self::FFPROBE_BIN, [
-            '-loglevel', 'quiet',
-            '-hide_banner',
-            '-show_streams',
-            '-i', $path,
-        ]);
-
-        $ffprobeOutput = explode("\n", $ffprobeOutput);
-
-        if (!isset($ffprobeOutput[0]) || $ffprobeOutput[0] !== '[STREAM]') {
-            return [];
-        }
-
-        $index = -1;
-        $streamInfo = [];
-        foreach ($ffprobeOutput as $line) {
-            if (!$line || $line === '[STREAM]' || $line === '[/STREAM]') {
-                continue;
-            }
-
-            [$k, $v] = explode('=', $line, 2);
-
-            if ($k === 'index') {
-                $index = (int) $v;
-                $streamInfo[$index] = [
-                    'type' => null,
-                    'lang' => $lang,
-                    'raw_details' => [
-                        'type' => 'ffprobe',
-                        'data' => [],
-                    ]
-                ];
-            }
-
-            if ($k === 'codec_type') {
-                $streamInfo[$index]['type'] = [
-                    'video' => 'video',
-                    'audio' => 'audio',
-                    'subtitle' => 'sub',
-                ][$v] ?? null;
-            }
-
-            $streamInfo[$index]['raw_details']['data'][$k] = $v;
-        }
-
-        return $streamInfo;
-    }
-
-    private function getMediaFileLang(string $path)
-    {
-        $match = null;
-        preg_match('/\.((?:[a-z]{2})(?:[_\-][A-Z]{2})?)\.[a-z]+$/', $path, $match);
-        return $match[1] ?? null;
     }
 
     private function parseVideoId(string $videoQuery)
@@ -245,10 +135,5 @@ class ArchiveYoutubeVideo implements ShouldQueue
             return $res[1];
         }
         return null;
-    }
-
-    private function runCommand(string $command, array $args)
-    {
-        return shell_exec($command . ' ' . implode(' ', array_map('escapeshellarg', $args)));
     }
 }
