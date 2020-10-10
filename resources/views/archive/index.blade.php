@@ -7,7 +7,7 @@
     </head>
     <body>
         <h1>Archive new video</h1>
-        <form action="{{ route('video_archive_add') }}" method="post">
+        <form action="{{ rroute('video_archive_add') }}" method="post">
             @csrf
             <div>
                 <label for="video">YouTube video</label>

@@ -10,7 +10,7 @@
         <ul>
             @foreach ($channel->videos as $video)
                 <li>
-                    <a href="{{ route('video', ['video' => $video]) }}">{{ $video->title }}</a>
+                    <a href="{{ rroute('video', ['video' => $video]) }}">{{ $video->title }}</a>
                 </li>
             @endforeach
         </ul>

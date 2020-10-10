@@ -26,7 +26,7 @@
             </ul>
         </div>
         <div>
-            <a href="{{ route('channel', ['channel' => $video->channel]) }}">{{ $video->channel->name }}</a>
+            <a href="{{ rroute('channel', ['channel' => $video->channel]) }}">{{ $video->channel->name }}</a>
         </div>
         <div>
             <a href="https://www.youtube.com/watch?v={{ $video->id }}">YouTube link</a>

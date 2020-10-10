@@ -7,13 +7,13 @@
     </head>
     <body>
         <div>
-            <a href="{{ route('video_archive') }}">Archive new video</a>
+            <a href="{{ rroute('video_archive') }}">Archive new video</a>
         </div>
         <h1>Channels</h1>
         <ul>
             @foreach ($channels as $channel)
                 <li>
-                    <a href="{{ route('channel', ['channel' => $channel]) }}">{{ $channel->name }}</a>
+                    <a href="{{ rroute('channel', ['channel' => $channel]) }}">{{ $channel->name }}</a>
                 </li>
             @endforeach
         </ul>
