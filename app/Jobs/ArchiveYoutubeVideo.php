@@ -112,8 +112,21 @@ class ArchiveYoutubeVideo implements ShouldQueue
 
     private function downloadVideo($video, $channel)
     {
+        // Avoid merging files to MKV and avoid collision in .webm video and audio
         SystemCommand::run(self::YTDL_BIN, [
-            '-f', 'bestvideo,bestaudio', // don't merge files to MKV
+            '-f', 'bestvideo',
+            '-o', storage_path('app/public/video_data/%(channel_id)s/%(id)s/%(upload_date)s-%(title)s-%(id)s.video.%(ext)s'),
+            '--',
+            $video->id,
+        ]);
+        SystemCommand::run(self::YTDL_BIN, [
+            '-f', 'bestaudio',
+            '-o', storage_path('app/public/video_data/%(channel_id)s/%(id)s/%(upload_date)s-%(title)s-%(id)s.audio.%(ext)s'),
+            '--',
+            $video->id,
+        ]);
+        SystemCommand::run(self::YTDL_BIN, [
+            '--skip-download',
             '--all-subs', // download all subtitles and live chat
             '-o', storage_path('app/public/video_data/%(channel_id)s/%(id)s/%(upload_date)s-%(title)s-%(id)s.%(ext)s'),
             '--',
