@@ -115,12 +115,12 @@ class ArchiveYoutubeVideo implements ShouldQueue
         SystemCommand::run(self::YTDL_BIN, [
             '-f', 'bestvideo,bestaudio', // don't merge files to MKV
             '--all-subs', // download all subtitles and live chat
-            '-o', 'storage/app/public/video_data/%(channel_id)s/%(id)s/%(upload_date)s-%(title)s-%(id)s.%(ext)s',
+            '-o', storage_path('app/public/video_data/%(channel_id)s/%(id)s/%(upload_date)s-%(title)s-%(id)s.%(ext)s'),
             '--',
             $video->id,
         ]);
 
-        return glob('storage/app/public/video_data/'.$channel->id.'/'.$video->id.'/*');
+        return glob(storage_path('app/public/video_data/'.$channel->id.'/'.$video->id.'/*'));
     }
 
     private function parseVideoId(string $videoQuery)
