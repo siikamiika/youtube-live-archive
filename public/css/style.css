@@ -12,6 +12,11 @@
     white-space: nowrap;
 }
 
+.chat-message-paid {
+    padding-right: 1em;
+    white-space: nowrap;
+}
+
 #video {
     width: 90%;
 }

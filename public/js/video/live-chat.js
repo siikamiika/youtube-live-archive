@@ -1,4 +1,85 @@
 (async () => {
+    function buildDom(object, targetObject) {
+        /* Builds a DOM element out of an object of the format
+         * {E: 'tag',
+         *   attr: 'attribute value',
+         *   C: [
+         *     {E: 'childtag', attr: 'child attribute'},
+         *     {E: 'childtag', C: 'C: element is the same as C: [element]}'
+         *     'strings are shorthand for document.createTextNode',
+         *     document.createElement('span'),
+         *     'the above works as well'
+         *   ]
+         * }
+         *
+         * If some object is given the key K, the result is another object that has a key
+         * for each value of K in the input object. Behind the key is a reference to the
+         * new DOM element. For example:
+         * {K: 'tagElement', E: 'tag',
+         *   C: [
+         *     {K: 'spanElement', E: 'span'}
+         *   ]
+         * }
+         * --> {tagElement: <DOM element <tag>>, spanElement: <DOM element <span>>}
+         *
+         * If the targetObject argument is given, the elements are added to it instead,
+         * and the parent element is returned. Useful with `this`.
+         */
+
+        if (typeof object === 'string') {
+            return document.createTextNode(object);
+        } else if (object instanceof HTMLElement || object instanceof Text) {
+            return object;
+        }
+
+        let element = document.createElement(object.E); // E for element
+        let elementObject = {}; // has 0 or more elements behind keys
+
+        if (object.K) { // K for key
+            elementObject[object.K] = element;
+        }
+
+        // add props to the DOM element
+        for (let key in object) {
+            if (['K', 'E', 'C'].includes(key)) { // skip buildDom specific syntax
+                continue;
+            } else if (/^on[a-z]+$/i.test(key)) { // onclick and such
+                // onclick --> click
+                let listener = key.match(/on(.+)/i)[1];
+                // support both `onclick: _ => 'foo'` and `onclick: [_ => 'foo', _ => 'bar']`
+                let functions = object[key] instanceof Array ? object[key] : [object[key]];
+                for (let fun of functions) {
+                    element.addEventListener(listener, fun);
+                }
+            } else if (Object.getPrototypeOf(object[key]) === Object.prototype) { // required by style and dataset
+                for (let subkey in object[key]) {
+                    element[key][subkey] = object[key][subkey];
+                }
+            } else { // anything else such as src or href
+                element[key] = object[key];
+            }
+        }
+
+        for (let child of object.C instanceof Array && object.C || // C for children
+                                         object.C && [object.C] || // only one child
+                                         []) {                     // no children
+            let result = buildDom(child, elementObject); // recursive
+            element.appendChild(result);
+        }
+
+        if (Object.keys(elementObject).length) { // one or more K was given
+            if (targetObject) { // add elementObject content to targetObject and return the parent element
+                for (let key in elementObject) {
+                    targetObject[key] = elementObject[key];
+                }
+            } else {
+                return elementObject;
+            }
+        }
+
+        return element;
+    }
+
     class LiveChatRenderer {
         constructor(chatElement) {
             this._chatElement = chatElement;
@@ -34,39 +115,29 @@
         }
 
         _renderChatItem(chatItem) {
-            const createElement = (name, properties={}) => {
-                const element = document.createElement(name);
-                Object.assign(element, properties);
-                return element;
-            };
-
             if (chatItem.type === 'CHAT_MESSAGE_NORMAL') {
-                const chatMessageElement = createElement('div', {classList: ['chat-message']});
-                chatMessageElement.dataset.id = chatItem.id;
-                chatMessageElement.appendChild(createElement('span', {
-                    textContent: chatItem.author,
-                    classList: ['chat-message-author-name'],
-                }));
-                chatMessageElement.appendChild(createElement('span', {
-                    textContent: chatItem.textParts.join(''),
-                    classList: ['chat-message-body'],
-                }));
-                return chatMessageElement;
+                return buildDom({
+                    E: 'div',
+                    classList: ['chat-message'],
+                    dataset: {id: chatItem.id},
+                    C: [
+                        {E: 'span', classList: ['chat-message-author-name'], C: chatItem.author},
+                        {E: 'span', classList: ['chat-message-body'], C: chatItem.textParts.join('')},
+                    ],
+                });
             }
 
             if (chatItem.type === 'CHAT_MESSAGE_PAID') {
-                // TODO paid amount
-                const chatMessageElement = createElement('div', {classList: ['chat-message']});
-                chatMessageElement.dataset.id = chatItem.id;
-                chatMessageElement.appendChild(createElement('span', {
-                    textContent: chatItem.author,
-                    classList: ['chat-message-author-name'],
-                }));
-                chatMessageElement.appendChild(createElement('span', {
-                    textContent: chatItem.textParts.join(''),
-                    classList: ['chat-message-body'],
-                }));
-                return chatMessageElement;
+                return buildDom({
+                    E: 'div',
+                    classList: ['chat-message'],
+                    dataset: {id: chatItem.id},
+                    C: [
+                        {E: 'span', classList: ['chat-message-author-name'], C: chatItem.author},
+                        {E: 'span', classList: ['chat-message-paid'], C: chatItem.paidText},
+                        {E: 'span', classList: ['chat-message-body'], C: chatItem.textParts.join('')},
+                    ],
+                });
             }
 
             // TODO other types
