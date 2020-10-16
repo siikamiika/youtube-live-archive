@@ -6,15 +6,15 @@
     word-break: break-word;
 }
 
-.chat-message-author-name {
-    color: gray;
+.chat-message .chat-message-author-name {
     padding-right: 1em;
-    white-space: nowrap;
 }
 
-.chat-message-paid {
-    padding-right: 1em;
-    white-space: nowrap;
+.chat-message-author-name {
+    color: gray;
+}
+
+.chat-message-paid-amount {
 }
 
 #video {

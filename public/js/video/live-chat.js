@@ -108,7 +108,7 @@
         }
 
         _clearLogUntil(messageId) {
-            for (const chatMessageElement of this._chatElement.querySelectorAll('.chat-message')) {
+            for (const chatMessageElement of this._chatElement.querySelectorAll('.chat-message, .chat-message-paid')) {
                 if (chatMessageElement.dataset.id === messageId) { break; }
                 this._chatElement.removeChild(chatMessageElement);
             }
@@ -130,12 +130,22 @@
             if (chatItem.type === 'CHAT_MESSAGE_PAID') {
                 return buildDom({
                     E: 'div',
-                    classList: ['chat-message'],
+                    classList: ['chat-message-paid'],
                     dataset: {id: chatItem.id},
                     C: [
-                        {E: 'span', classList: ['chat-message-author-name'], C: chatItem.author},
-                        {E: 'span', classList: ['chat-message-paid'], C: chatItem.paidText},
-                        {E: 'span', classList: ['chat-message-body'], C: chatItem.textParts.join('')},
+                        {E: 'div', classList: ['chat-message-paid-header'], C: [
+                            {
+                                E: 'div',
+                                C: {E: 'span', classList: ['chat-message-author-name'], C: chatItem.author}
+                            },
+                            {
+                                E: 'div',
+                                C: {E: 'span', classList: ['chat-message-paid-amount'], C: chatItem.paidAmount}
+                            },
+                        ]},
+                        {E: 'div', classList: ['chat-message-paid-footer'], C: [
+                            {E: 'span', classList: ['chat-message-body'], C: chatItem.textParts.join('')},
+                        ]},
                     ],
                 });
             }
@@ -180,7 +190,7 @@
                         id: renderer.id,
                         author: renderer.authorName.simpleText,
                         textParts: transformMessageRuns(renderer.message.runs),
-                        paidText: renderer.purchaseAmountText.simpleText,
+                        paidAmount: renderer.purchaseAmountText.simpleText,
                     };
                 } else if (chatAction.liveChatMembershipItemRenderer) {
                     const renderer = chatAction.liveChatMembershipItemRenderer;
@@ -204,7 +214,7 @@
             // TODO use proper styling
             const currentTimeMs = this._videoElement.currentTime * 1000;
             const chatEvents = [];
-            for await (const chatItem of this._getRange(currentTimeMs - 15000, currentTimeMs)) {
+            for await (const chatItem of this._getRange(currentTimeMs - 30000, currentTimeMs)) {
                 chatEvents.push(...this._parser.parse(chatItem));
             }
             this._renderer.render(chatEvents);
