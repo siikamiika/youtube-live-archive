@@ -4,26 +4,25 @@
             this._chatElement = chatElement;
         }
 
-        async render(events) {
+        render(events) {
             let first = true;
             let lastId = null;
             // TODO use timeout queue or something
-            for await (const chatItem of events) {
-                for (const chatMessageElement of this._renderChatItems(chatItem)) {
-                    if (first) {
-                        this._clearLogUntil(chatMessageElement.dataset.id);
-                        first = false;
-                        lastId = this._chatElement.lastChild?.dataset?.id;
-                    }
-                    if (lastId) {
-                        if (lastId === chatMessageElement.dataset.id) {
-                            lastId = null;
-                        }
-                        continue;
-                    }
-                    this._chatElement.appendChild(chatMessageElement);
-                    this._chatElement.scrollTop = this._chatElement.scrollHeight;
+            for (const chatItem of events) {
+                const chatMessageElement = this._renderChatItem(chatItem);
+                if (first) {
+                    this._clearLogUntil(chatMessageElement.dataset.id);
+                    first = false;
+                    lastId = this._chatElement.lastChild?.dataset?.id;
                 }
+                if (lastId) {
+                    if (lastId === chatMessageElement.dataset.id) {
+                        lastId = null;
+                    }
+                    continue;
+                }
+                this._chatElement.appendChild(chatMessageElement);
+                this._chatElement.scrollTop = this._chatElement.scrollHeight;
             }
         }
 
@@ -34,19 +33,52 @@
             }
         }
 
-        *_renderChatItems(chatItem) {
-            const actions = chatItem?.replayChatItemAction?.actions;
-            if (!actions) { return; }
-            for (const action of actions) {
+        _renderChatItem(chatItem) {
+            const createElement = (name, properties={}) => {
+                const element = document.createElement(name);
+                Object.assign(element, properties);
+                return element;
+            };
+
+            if (chatItem.type === 'CHAT_MESSAGE_NORMAL') {
+                const chatMessageElement = createElement('div', {classList: ['chat-message']});
+                chatMessageElement.dataset.id = chatItem.id;
+                chatMessageElement.appendChild(createElement('span', {
+                    textContent: chatItem.author,
+                    classList: ['chat-message-author-name'],
+                }));
+                chatMessageElement.appendChild(createElement('span', {
+                    textContent: chatItem.textParts.join(''),
+                    classList: ['chat-message-body'],
+                }));
+                return chatMessageElement;
+            }
+
+            if (chatItem.type === 'CHAT_MESSAGE_PAID') {
+                // TODO paid amount
+                const chatMessageElement = createElement('div', {classList: ['chat-message']});
+                chatMessageElement.dataset.id = chatItem.id;
+                chatMessageElement.appendChild(createElement('span', {
+                    textContent: chatItem.author,
+                    classList: ['chat-message-author-name'],
+                }));
+                chatMessageElement.appendChild(createElement('span', {
+                    textContent: chatItem.textParts.join(''),
+                    classList: ['chat-message-body'],
+                }));
+                return chatMessageElement;
+            }
+
+            // TODO other types
+        }
+    }
+
+    class YoutubeLiveChatParser {
+        *parse(data) {
+            for (const action of data?.replayChatItemAction?.actions || []) {
                 // TODO addLiveChatTickerItemAction
                 const chatAction = action?.addChatItemAction?.item;
                 if (!chatAction) { continue; }
-
-                const createElement = (name, properties={}) => {
-                    const element = document.createElement(name);
-                    Object.assign(element, properties);
-                    return element;
-                };
 
                 const transformMessageRuns = (runs) => {
                     const newRuns = [];
@@ -58,36 +90,27 @@
                             newRuns.push(run.emoji.shortcuts[0])
                         }
                     }
-                    return newRuns.join('');
+                    return newRuns;
                 };
 
                 if (chatAction.liveChatTextMessageRenderer) {
                     const renderer = chatAction.liveChatTextMessageRenderer;
-                    const chatMessageElement = createElement('div', {classList: ['chat-message']});
-                    chatMessageElement.dataset.id = renderer.id;
-                    chatMessageElement.appendChild(createElement('span', {
-                        textContent: renderer?.authorName?.simpleText ?? '',
-                        classList: ['chat-message-author-name'],
-                    }));
-                    chatMessageElement.appendChild(createElement('span', {
-                        textContent: transformMessageRuns(renderer.message.runs),
-                        classList: ['chat-message-body'],
-                    }));
-                    yield chatMessageElement;
+                    yield {
+                        type: 'CHAT_MESSAGE_NORMAL',
+                        id: renderer.id,
+                        author: renderer.authorName.simpleText,
+                        textParts: transformMessageRuns(renderer.message.runs),
+                    };
                 } else if (chatAction.liveChatPaidMessageRenderer) {
                     // TODO paid amount
                     const renderer = chatAction.liveChatPaidMessageRenderer;
-                    const chatMessageElement = createElement('div', {classList: ['chat-message']});
-                    chatMessageElement.dataset.id = renderer.id;
-                    chatMessageElement.appendChild(createElement('span', {
-                        textContent: renderer?.authorName?.simpleText ?? '',
-                        classList: ['chat-message-author-name'],
-                    }));
-                    chatMessageElement.appendChild(createElement('span', {
-                        textContent: transformMessageRuns(renderer.message?.runs ?? []),
-                        classList: ['chat-message-body'],
-                    }));
-                    yield chatMessageElement;
+                    yield {
+                        type: 'CHAT_MESSAGE_PAID',
+                        id: renderer.id,
+                        author: renderer.authorName.simpleText,
+                        textParts: transformMessageRuns(renderer.message.runs),
+                        paidText: renderer.purchaseAmountText.simpleText,
+                    };
                 } else if (chatAction.liveChatMembershipItemRenderer) {
                     const renderer = chatAction.liveChatMembershipItemRenderer;
                     // TODO
@@ -100,16 +123,20 @@
         constructor(url, videoElement, chatElement) {
             this._url = url;
             this._videoElement = videoElement;
+            this._parser = new YoutubeLiveChatParser();
             this._renderer = new LiveChatRenderer(chatElement);
             this._cache = [];
             this._lineIterator = this._iterateLines();
         }
 
-        async updateLiveChat(time) {
+        async updateLiveChat() {
             // TODO use proper styling
             const currentTimeMs = this._videoElement.currentTime * 1000;
-            const chatEvents = this._getRange(currentTimeMs - 15000, currentTimeMs);
-            await this._renderer.render(chatEvents);
+            const chatEvents = [];
+            for await (const chatItem of this._getRange(currentTimeMs - 15000, currentTimeMs)) {
+                chatEvents.push(...this._parser.parse(chatItem));
+            }
+            this._renderer.render(chatEvents);
         }
 
         // https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read
