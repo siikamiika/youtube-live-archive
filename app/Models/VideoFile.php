@@ -17,9 +17,9 @@ class VideoFile extends Model
     {
         return sprintf(
             '/storage/video_data/%s/%s/%s',
-            $video->channel->id,
-            $video->id,
-            $this->filename,
+            rawurlencode($video->channel->id),
+            rawurlencode($video->id),
+            rawurlencode($this->filename),
         );
     }
 
