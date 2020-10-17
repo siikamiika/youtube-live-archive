@@ -242,7 +242,7 @@
                         id: renderer.id,
                         authorChannelId: renderer.authorExternalChannelId,
                         authorName: renderer.authorName.simpleText,
-                        messageParts: renderer.message.runs.map(transformMessageRun),
+                        messageParts: renderer.message ? renderer.message.runs.map(transformMessageRun) : [],
                     };
                 } else if (chatAction.liveChatPaidMessageRenderer) {
                     const renderer = chatAction.liveChatPaidMessageRenderer;
@@ -251,7 +251,7 @@
                         id: renderer.id,
                         authorChannelId: renderer.authorExternalChannelId,
                         authorName: renderer.authorName.simpleText,
-                        messageParts: renderer.message.runs.map(transformMessageRun),
+                        messageParts: renderer.message ? renderer.message.runs.map(transformMessageRun) : [],
                         paidAmount: renderer.purchaseAmountText.simpleText,
                         headerBgColor: renderer.headerBackgroundColor,
                         headerFgColor: renderer.headerTextColor,
