@@ -43,12 +43,13 @@
     height: 100%;
 }
 
-.chat-message .chat-message-author-name {
+.chat-message .chat-message-author {
     padding-right: 1em;
 }
 
-.chat-message-author-name {
+.chat-message-author {
     color: gray;
+    text-decoration: inherit;
 }
 
 .chat-message-paid-amount {

@@ -121,7 +121,14 @@
                     classList: ['chat-message'],
                     dataset: {id: chatItem.id},
                     C: [
-                        {E: 'span', classList: ['chat-message-author-name'], C: chatItem.authorName},
+                        {
+                            E: 'a',
+                            classList: ['chat-message-author'],
+                            href: `https://www.youtube.com/channel/${encodeURIComponent(chatItem.authorChannelId)}`,
+                            rel: 'noopener noreferrer',
+                            target: '_blank',
+                            C: chatItem.authorName,
+                        },
                         {E: 'span', classList: ['chat-message-body'], C: chatItem.messageParts.join('')},
                     ],
                 });
@@ -139,10 +146,13 @@
                         {
                             E: 'div',
                             C: {
-                                E: 'span',
-                                classList: ['chat-message-author-name'],
+                                E: 'a',
+                                classList: ['chat-message-author'],
                                 style: {color: this._convertArgbIntRgbaCss(chatItem.authorNameColor)},
-                                C: chatItem.authorName
+                                href: `https://www.youtube.com/channel/${encodeURIComponent(chatItem.authorChannelId)}`,
+                                rel: 'noopener noreferrer',
+                                target: '_blank',
+                                C: chatItem.authorName,
                             }
                         },
                         {
@@ -212,6 +222,7 @@
                     yield {
                         type: 'CHAT_MESSAGE_NORMAL',
                         id: renderer.id,
+                        authorChannelId: renderer.authorExternalChannelId,
                         authorName: renderer.authorName.simpleText,
                         messageParts: transformMessageRuns(renderer.message.runs),
                     };
@@ -220,6 +231,7 @@
                     yield {
                         type: 'CHAT_MESSAGE_PAID',
                         id: renderer.id,
+                        authorChannelId: renderer.authorExternalChannelId,
                         authorName: renderer.authorName.simpleText,
                         messageParts: transformMessageRuns(renderer.message.runs),
                         paidAmount: renderer.purchaseAmountText.simpleText,
