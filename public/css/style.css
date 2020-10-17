@@ -55,6 +55,11 @@
 .chat-message-paid-amount {
 }
 
+.chat-emoji {
+    width: 30px;
+    height: 30px;
+}
+
 .video-description {
     white-space: pre-wrap;
 }

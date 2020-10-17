@@ -129,7 +129,7 @@
                             target: '_blank',
                             C: chatItem.authorName,
                         },
-                        {E: 'span', classList: ['chat-message-body'], C: chatItem.messageParts.join('')},
+                        {E: 'span', classList: ['chat-message-body'], C: chatItem.messageParts.map(this._renderMessagePart.bind(this))},
                     ],
                 });
             }
@@ -173,7 +173,7 @@
                         E: 'span',
                         classList: ['chat-message-body'],
                         style: {color: chatItem.bodyFgColor},
-                        C: chatItem.messageParts.join('')
+                        C: chatItem.messageParts.map(this._renderMessagePart.bind(this))
                     }
                 };
 
@@ -186,6 +186,22 @@
             }
 
             // TODO other types
+        }
+
+        _renderMessagePart(part) {
+            if (part.text) {
+                return part.text;
+            }
+
+            if (part.emoji) {
+                return {
+                    E: 'img',
+                    classList: ['chat-emoji'],
+                    src: part.emoji.url,
+                    alt: part.emoji.name,
+                    title: part.emoji.name,
+                };
+            }
         }
 
         _convertArgbIntRgbaCss(color) {
@@ -204,17 +220,19 @@
                 const chatAction = action?.addChatItemAction?.item;
                 if (!chatAction) { continue; }
 
-                const transformMessageRuns = (runs) => {
-                    const newRuns = [];
-                    for (const run of runs) {
-                        if (run.text) {
-                            newRuns.push(run.text);
-                        } else if (run.emoji) {
-                            // TODO use image
-                            newRuns.push(run.emoji.shortcuts[0])
-                        }
+                const transformMessageRun = (run) => {
+                    if (run.text) {
+                        return {text: run.text};
                     }
-                    return newRuns;
+
+                    if (run.emoji) {
+                        return {
+                            emoji: {
+                                url: run.emoji.image.thumbnails.sort((a, b) => a.width <= b.width)[0].url,
+                                name: run.emoji.shortcuts[0],
+                            }
+                        };
+                    }
                 };
 
                 if (chatAction.liveChatTextMessageRenderer) {
@@ -224,7 +242,7 @@
                         id: renderer.id,
                         authorChannelId: renderer.authorExternalChannelId,
                         authorName: renderer.authorName.simpleText,
-                        messageParts: transformMessageRuns(renderer.message.runs),
+                        messageParts: renderer.message.runs.map(transformMessageRun),
                     };
                 } else if (chatAction.liveChatPaidMessageRenderer) {
                     const renderer = chatAction.liveChatPaidMessageRenderer;
@@ -233,7 +251,7 @@
                         id: renderer.id,
                         authorChannelId: renderer.authorExternalChannelId,
                         authorName: renderer.authorName.simpleText,
-                        messageParts: transformMessageRuns(renderer.message.runs),
+                        messageParts: renderer.message.runs.map(transformMessageRun),
                         paidAmount: renderer.purchaseAmountText.simpleText,
                         headerBgColor: renderer.headerBackgroundColor,
                         headerFgColor: renderer.headerTextColor,
@@ -260,7 +278,6 @@
         }
 
         async updateLiveChat() {
-            // TODO use proper styling
             const currentTimeMs = this._videoElement.currentTime * 1000;
             const chatEvents = [];
             for await (const chatItem of this._getRange(currentTimeMs - 30000, currentTimeMs)) {
