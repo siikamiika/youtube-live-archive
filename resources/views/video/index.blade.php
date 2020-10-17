@@ -9,28 +9,33 @@
     </head>
     <body>
         <div>
-            <div>
-                <video id="video" controls poster="{{$video->thumbnail}}">
-                    <source src="{{ $files->video->url }}">
-                    @foreach ($files->subs as $sub)
-                        <track label="{{ $sub->lang }}" srclang="{{ $sub->lang }}" kind="subtitles" src="{{ $sub->url }}">
-                    @endforeach
-                </video>
+            <div class="video-content-container">
+                <div class="video-container">
+                    <video id="video" controls poster="{{$video->thumbnail}}">
+                        <source src="{{ $files->video->url }}">
+                        @foreach ($files->subs as $sub)
+                            <track label="{{ $sub->lang }}" srclang="{{ $sub->lang }}" kind="subtitles" src="{{ $sub->url }}">
+                        @endforeach
+                    </video>
 
-                @if ($files->audio)
-                    <audio id="audio">
-                        <source src="{{ $files->audio->url }}">
-                    </audio>
-                @endif
+                    @if ($files->audio)
+                        <audio id="audio">
+                            <source src="{{ $files->audio->url }}">
+                        </audio>
+                    @endif
+                </div>
+
+                <div id="live-chat"></div>
             </div>
-            <div id="live-chat"></div>
-            <h1>{{$video->title}}</h1>
-            <ul>
-                <li>Duration: {{$video->duration}}</li>
-                <li>Views: {{$video->view_count}}</li>
-                <li>Rating: {{$video->average_rating}}</li>
-                <li>Uploaded: {{$video->upload_date}}</li>
-            </ul>
+            <div>
+                <h1>{{$video->title}}</h1>
+                <ul>
+                    <li>Duration: {{$video->duration}}</li>
+                    <li>Views: {{$video->view_count}}</li>
+                    <li>Rating: {{$video->average_rating}}</li>
+                    <li>Uploaded: {{$video->upload_date}}</li>
+                </ul>
+            </div>
         </div>
         <div>
             <a href="{{ rroute('channel', ['channel' => $video->channel]) }}">{{ $video->channel->name }}</a>

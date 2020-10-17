@@ -121,36 +121,69 @@
                     classList: ['chat-message'],
                     dataset: {id: chatItem.id},
                     C: [
-                        {E: 'span', classList: ['chat-message-author-name'], C: chatItem.author},
-                        {E: 'span', classList: ['chat-message-body'], C: chatItem.textParts.join('')},
+                        {E: 'span', classList: ['chat-message-author-name'], C: chatItem.authorName},
+                        {E: 'span', classList: ['chat-message-body'], C: chatItem.messageParts.join('')},
                     ],
                 });
             }
 
             if (chatItem.type === 'CHAT_MESSAGE_PAID') {
+                const header = {
+                    E: 'div',
+                    classList: ['chat-message-paid-header'],
+                    style: {
+                        color: this._convertArgbIntRgbaCss(chatItem.headerFgColor),
+                        backgroundColor: this._convertArgbIntRgbaCss(chatItem.headerBgColor),
+                    },
+                    C: [
+                        {
+                            E: 'div',
+                            C: {
+                                E: 'span',
+                                classList: ['chat-message-author-name'],
+                                style: {color: this._convertArgbIntRgbaCss(chatItem.authorNameColor)},
+                                C: chatItem.authorName
+                            }
+                        },
+                        {
+                            E: 'div',
+                            C: {E: 'span', classList: ['chat-message-paid-amount'], C: chatItem.paidAmount}
+                        }
+                    ]
+                };
+
+                const body = {
+                    E: 'div',
+                    classList: ['chat-message-paid-body'],
+                    style: {
+                        color: this._convertArgbIntRgbaCss(chatItem.bodyFgColor),
+                        backgroundColor: this._convertArgbIntRgbaCss(chatItem.bodyBgColor),
+                    },
+                    C: {
+                        E: 'span',
+                        classList: ['chat-message-body'],
+                        style: {color: chatItem.bodyFgColor},
+                        C: chatItem.messageParts.join('')
+                    }
+                };
+
                 return buildDom({
                     E: 'div',
                     classList: ['chat-message-paid'],
                     dataset: {id: chatItem.id},
-                    C: [
-                        {E: 'div', classList: ['chat-message-paid-header'], C: [
-                            {
-                                E: 'div',
-                                C: {E: 'span', classList: ['chat-message-author-name'], C: chatItem.author}
-                            },
-                            {
-                                E: 'div',
-                                C: {E: 'span', classList: ['chat-message-paid-amount'], C: chatItem.paidAmount}
-                            },
-                        ]},
-                        {E: 'div', classList: ['chat-message-paid-footer'], C: [
-                            {E: 'span', classList: ['chat-message-body'], C: chatItem.textParts.join('')},
-                        ]},
-                    ],
+                    C: [header, body],
                 });
             }
 
             // TODO other types
+        }
+
+        _convertArgbIntRgbaCss(color) {
+            const b = color & 0xff;
+            const g = (color >> 8) & 0xff;
+            const r = (color >> 16) & 0xff;
+            const a = ((color >> 24) & 0xff) / 0xff;
+            return `rgba(${r}, ${g}, ${b}, ${a})`;
         }
     }
 
@@ -179,18 +212,22 @@
                     yield {
                         type: 'CHAT_MESSAGE_NORMAL',
                         id: renderer.id,
-                        author: renderer.authorName.simpleText,
-                        textParts: transformMessageRuns(renderer.message.runs),
+                        authorName: renderer.authorName.simpleText,
+                        messageParts: transformMessageRuns(renderer.message.runs),
                     };
                 } else if (chatAction.liveChatPaidMessageRenderer) {
-                    // TODO paid amount
                     const renderer = chatAction.liveChatPaidMessageRenderer;
                     yield {
                         type: 'CHAT_MESSAGE_PAID',
                         id: renderer.id,
-                        author: renderer.authorName.simpleText,
-                        textParts: transformMessageRuns(renderer.message.runs),
+                        authorName: renderer.authorName.simpleText,
+                        messageParts: transformMessageRuns(renderer.message.runs),
                         paidAmount: renderer.purchaseAmountText.simpleText,
+                        headerBgColor: renderer.headerBackgroundColor,
+                        headerFgColor: renderer.headerTextColor,
+                        bodyBgColor: renderer.bodyBackgroundColor,
+                        bodyFgColor: renderer.bodyTextColor,
+                        authorNameColor: renderer.authorNameTextColor,
                     };
                 } else if (chatAction.liveChatMembershipItemRenderer) {
                     const renderer = chatAction.liveChatMembershipItemRenderer;
