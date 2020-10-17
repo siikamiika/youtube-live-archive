@@ -54,3 +54,7 @@
 
 .chat-message-paid-amount {
 }
+
+.video-description {
+    white-space: pre-wrap;
+}

@@ -44,7 +44,7 @@
             <a href="https://www.youtube.com/watch?v={{ $video->id }}">YouTube link</a>
         </div>
         <div>
-            <pre>{{
+            <pre class="video-description">{{
                 $video->description
             }}</pre>
         </div>
