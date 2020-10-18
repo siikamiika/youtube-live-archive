@@ -22,6 +22,7 @@ class CreateVideosTable extends Migration
             $table->unsignedBigInteger('view_count')->nullable();
             $table->float('average_rating', 10, 6)->nullable();
             $table->text('thumbnail')->nullable();
+            $table->boolean('archived')->default(false);
             // TODO tables: categories, tags
             $table->datetime('upload_date')->nullable();
             $table->timestamps();

@@ -24,7 +24,7 @@ class ChannelController extends BaseController
             'asc' => 'asc',
         ][$request->input('sort_direction')] ?? 'desc';
 
-        $videos = $channel->videos()->withFilesExist()->orderBy($orderField, $orderDirection)->paginate(20);
+        $videos = $channel->videos()->orderBy($orderField, $orderDirection)->paginate(20);
         $videos->withPath('/channel/' . $channel->id);
 
         $sortFields = [

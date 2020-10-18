@@ -39,10 +39,18 @@ class ArchiveYoutubeVideo implements ShouldQueue
     public function handle()
     {
         // TODO notify user on invalid video ID
-        if (!$this->force) {
-            if (!$this->videoId || \App\Models\Video::where('id', $this->videoId)->exists()) {
+        if (!$this->videoId) {
+            return;
+        }
+
+        $video = \App\Models\Video::find($this->videoId);
+        if ($video) {
+            if ($video->archived && !$this->force) {
                 return;
             }
+        } else {
+            $video = new \App\Models\Video;
+            $video->id = $this->videoId;
         }
 
         $videoDetails = $this->fetchVideoDetails($this->videoId);
@@ -55,27 +63,23 @@ class ArchiveYoutubeVideo implements ShouldQueue
             ['name' => $videoDetails['uploader']]
         );
 
-        $video = \App\Models\Video::firstOrCreate(
-            [
-                'id' => $videoDetails['id']
-            ],
-            [
-                'channel_id' => $videoDetails['channel_id'],
-                'title' => $videoDetails['title'],
-                'description' => $videoDetails['description'],
-                'duration' => $videoDetails['duration'],
-                'view_count' => $videoDetails['view_count'],
-                'average_rating' => $videoDetails['average_rating'],
-                'thumbnail' => $videoDetails['thumbnail'],
-                'upload_date' => sprintf(
-                    '%s-%s-%s',
-                    substr($videoDetails['upload_date'], 0, 4), // YYYY
-                    substr($videoDetails['upload_date'], 4, 2), // MM
-                    substr($videoDetails['upload_date'], 6, 2), // DD
-                ),
-                // TODO tables: categories, tags
-            ]
-        );
+        $video->fill([
+            'channel_id' => $videoDetails['channel_id'],
+            'title' => $videoDetails['title'],
+            'description' => $videoDetails['description'],
+            'duration' => $videoDetails['duration'],
+            'view_count' => $videoDetails['view_count'],
+            'average_rating' => $videoDetails['average_rating'],
+            'thumbnail' => $videoDetails['thumbnail'],
+            'archived' => true,
+            'upload_date' => sprintf(
+                '%s-%s-%s',
+                substr($videoDetails['upload_date'], 0, 4), // YYYY
+                substr($videoDetails['upload_date'], 4, 2), // MM
+                substr($videoDetails['upload_date'], 6, 2), // DD
+            ),
+            // TODO tables: categories, tags
+        ]);
 
         foreach ($this->downloadVideo($video, $channel) as $path) {
             $fileDetails = MediaFile::getDetails($path);
@@ -96,6 +100,8 @@ class ArchiveYoutubeVideo implements ShouldQueue
                 ]
             );
         }
+
+        $video->save();
     }
 
     private function fetchVideoDetails(string $videoId)

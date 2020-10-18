@@ -9,24 +9,36 @@
     </head>
     <body>
         <div>
-            <div class="video-content-container">
-                <div class="video-container">
-                    <video id="video" controls poster="{{$video->thumbnail}}">
-                        <source src="{{ $files->video->url }}">
-                        @foreach ($files->subs as $sub)
-                            <track label="{{ $sub->lang }}" srclang="{{ $sub->lang }}" kind="subtitles" src="{{ $sub->url }}">
-                        @endforeach
-                    </video>
+            @if ($video->archived)
+                <div class="video-content-container">
+                    <div class="video-container">
+                        <video id="video" controls poster="{{$video->thumbnail}}">
+                            <source src="{{ $files->video->url }}">
+                            @foreach ($files->subs as $sub)
+                                <track label="{{ $sub->lang }}" srclang="{{ $sub->lang }}" kind="subtitles" src="{{ $sub->url }}">
+                            @endforeach
+                        </video>
 
-                    @if ($files->audio)
-                        <audio id="audio">
-                            <source src="{{ $files->audio->url }}">
-                        </audio>
-                    @endif
+                        @if ($files->audio)
+                            <audio id="audio">
+                                <source src="{{ $files->audio->url }}">
+                            </audio>
+                        @endif
+                    </div>
+
+                    <div id="live-chat"></div>
                 </div>
-
-                <div id="live-chat"></div>
-            </div>
+            @else
+                <div>
+                    <span>Video not archived.</span>
+                    <form action="{{ rroute('video_archive_add') }}" method="post">
+                        @csrf
+                        <input type="hidden" name="video" value="{{ $video->id }}">
+                        <input type="hidden" name="force" value="0">
+                        <input type="submit" value="Archive video">
+                    </form>
+                </div>
+            @endif
             <div>
                 <h1>{{$video->title}}</h1>
                 <ul>

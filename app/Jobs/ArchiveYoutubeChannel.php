@@ -67,6 +67,7 @@ class ArchiveYoutubeChannel implements ShouldQueue
                 'view_count' => $videoDetails['view_count'],
                 'average_rating' => $videoDetails['average_rating'],
                 'thumbnail' => $videoDetails['thumbnail'],
+                'archived' => false,
                 'upload_date' => sprintf(
                     '%s-%s-%s',
                     substr($videoDetails['upload_date'], 0, 4), // YYYY
