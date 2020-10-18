@@ -28,12 +28,12 @@
 
 @media only screen and (min-width: 1000px) {
     .video-container {
-        max-height: 95vh;
+        max-height: 80vh;
         max-width: 70vw;
     }
 
     #live-chat {
-        max-height: 95vh;
+        max-height: 80vh;
         max-width: 25vw;
     }
 }
