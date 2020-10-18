@@ -28,4 +28,9 @@ class Video extends Model
     {
         return $this->hasMany(VideoFile::class);
     }
+
+    public function scopeWithFilesExist($query)
+    {
+        return $query->selectRaw('*, (select exists(select * from "video_files" where "video_id" = "videos"."id")) as files_exist');
+    }
 }

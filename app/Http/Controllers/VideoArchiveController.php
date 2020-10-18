@@ -8,6 +8,7 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Redirect;
 use App\Jobs\ArchiveYoutubeVideo;
+use App\Jobs\ArchiveYoutubeChannel;
 use Illuminate\Http\Request;
 
 class VideoArchiveController extends BaseController
@@ -18,6 +19,11 @@ class VideoArchiveController extends BaseController
 
     public function add(Request $request) {
         ArchiveYoutubeVideo::dispatch($request->input('video'), $request->input('force'));
+        return Redirect::back();
+    }
+
+    public function addChannel(Request $request) {
+        ArchiveYoutubeChannel::dispatch($request->input('channel'), $request->input('force'));
         return Redirect::back();
     }
 }

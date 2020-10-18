@@ -46,8 +46,9 @@ class ArchiveYoutubeVideo implements ShouldQueue
         }
 
         $videoDetails = $this->fetchVideoDetails($this->videoId);
-
-        \DB::beginTransaction();
+        if (!$videoDetails) {
+            throw new \RuntimeException('No video details');
+        }
 
         $channel = \App\Models\Channel::firstOrCreate(
             ['id' => $videoDetails['channel_id']],
@@ -95,8 +96,6 @@ class ArchiveYoutubeVideo implements ShouldQueue
                 ]
             );
         }
-
-        \DB::commit();
     }
 
     private function fetchVideoDetails(string $videoId)
@@ -104,6 +103,7 @@ class ArchiveYoutubeVideo implements ShouldQueue
         return json_decode(
             SystemCommand::run(self::YTDL_BIN, [
                 '-j',
+                '--',
                 $videoId,
             ]),
             true

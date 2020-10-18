@@ -19,6 +19,7 @@ Route::get('/', 'App\Http\Controllers\IndexController@index')->name('index');
 // video archival
 Route::get('/video_archive/', 'App\Http\Controllers\VideoArchiveController@index')->name('video_archive');
 Route::post('/video_archive/add', 'App\Http\Controllers\VideoArchiveController@add')->name('video_archive_add');
+Route::post('/video_archive/add_channel', 'App\Http\Controllers\VideoArchiveController@addChannel')->name('video_archive_add_channel');
 
 // channel
 Route::get('/channel/{channel}', 'App\Http\Controllers\ChannelController@index')->name('channel');

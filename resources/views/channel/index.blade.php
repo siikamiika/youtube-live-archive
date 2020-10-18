@@ -21,7 +21,7 @@
         </div>
         <ul class="video-card-list">
             @foreach ($videos as $video)
-                <li class="video-card">
+                <li class="video-card {{ $video->files_exist ? '' : 'unarchived' }}">
                     <a href="{{ rroute('video', ['video' => $video]) }}">
                         <div class="video-card-thumbnail-container">
                             <img class="video-card-thumbnail" src="{{ $video->thumbnail }}" alt="thumbnail">

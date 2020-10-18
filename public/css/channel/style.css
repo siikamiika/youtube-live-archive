@@ -23,6 +23,10 @@
     width: 210px;
 }
 
+.video-card.unarchived .video-card-thumbnail {
+    opacity: 0.25;
+}
+
 .video-card-duration {
     font-size: 80%;
     position: absolute;
