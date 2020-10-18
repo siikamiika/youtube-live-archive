@@ -40,7 +40,7 @@
     font-size: 80%;
 }
 
-.video-card-list-controls .video-card-list-control {
+.video-card-list-sorting .video-card-list-sort {
     display: inline-block;
     text-decoration: none;
     color: inherit;

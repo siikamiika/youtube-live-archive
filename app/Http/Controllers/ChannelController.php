@@ -24,7 +24,24 @@ class ChannelController extends BaseController
             'asc' => 'asc',
         ][$request->input('sort_direction')] ?? 'desc';
 
-        $videos = $channel->videos()->orderBy($orderField, $orderDirection)->paginate(20);
+        $videosQuery = $channel->videos();
+
+        // sort
+        $videosQuery->orderBy($orderField, $orderDirection);
+
+        // filter
+        if ($request->input('archived_only')) {
+            $videosQuery->where('archived', true);
+        }
+        if ($request->input('contains_text')) {
+            $videosQuery->where(function ($query) use ($request) {
+                $text = $request->input('contains_text');
+                $query->where('title', 'LIKE', '%'.$text.'%');
+                $query->orWhere('description', 'LIKE', '%'.$text.'%');
+            });
+        }
+
+        $videos = $videosQuery->paginate(20);
         $videos->withPath('/channel/' . $channel->id);
 
         $sortFields = [

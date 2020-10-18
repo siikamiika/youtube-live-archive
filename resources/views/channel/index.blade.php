@@ -17,16 +17,39 @@
             <input type="submit" value="Fetch new videos">
         </form>
 
+        <hr>
+
         <div class="video-card-list-controls">
-            @foreach ($sortFields as [$field, $defaultSortDirection, $description])
-                <a
-                    href="{{ rroute('channel', ['channel' => $channel->id] + sort_params($field, 'uploaded', $defaultSortDirection)) }}"
-                    class="video-card-list-control sort-{{ $field }}"
-                >
-                    {{ $description }} {{ sort_symbol($field, 'uploaded') }}
-                </a>
-            @endforeach
+            <div class="video-card-list-filtering">
+                <form method="get">
+                    @foreach (request()->all() as $key => $value)
+                        @if (in_array($key, ['contains_text', 'archived_only']))
+                            @continue
+                        @endif
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endforeach
+                    <div>
+                        <input type="text" value="{{ request()->get('contains_text') }}" name="contains_text" id="contains_text">
+                        <label for="contains_text">Contains text</label>
+                    </div>
+                    <div>
+                        <input onchange="this.form.submit()" type="checkbox" {{ request()->get('archived_only') ? 'checked' : '' }} name="archived_only" id="archived_only">
+                        <label for="archived_only">Archived only</label>
+                    </div>
+                </form>
+            </div>
+            <div class="video-card-list-sorting">
+                @foreach ($sortFields as [$field, $defaultSortDirection, $description])
+                    <a
+                        href="{{ rroute('channel', ['channel' => $channel->id] + sort_params($field, 'uploaded', $defaultSortDirection) + request()->all()) }}"
+                        class="video-card-list-sort sort-{{ $field }}"
+                    >
+                        {{ $description }} {{ sort_symbol($field, 'uploaded') }}
+                    </a>
+                @endforeach
+            </div>
         </div>
+
         <ul class="video-card-list">
             @foreach ($videos as $video)
                 <li class="video-card {{ $video->archived ? '' : 'unarchived' }}">
