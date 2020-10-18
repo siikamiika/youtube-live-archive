@@ -118,18 +118,18 @@
             if (chatItem.type === 'CHAT_MESSAGE_NORMAL') {
                 return buildDom({
                     E: 'div',
-                    classList: ['chat-message'],
+                    className: 'chat-message chat-message-normal',
                     dataset: {id: chatItem.id},
                     C: [
                         {
                             E: 'a',
-                            classList: ['chat-message-author'],
+                            className: 'chat-message-author',
                             href: `https://www.youtube.com/channel/${encodeURIComponent(chatItem.authorChannelId)}`,
                             rel: 'noopener noreferrer',
                             target: '_blank',
                             C: chatItem.authorName,
                         },
-                        {E: 'span', classList: ['chat-message-body'], C: chatItem.messageParts.map(this._renderMessagePart.bind(this))},
+                        {E: 'span', className: 'chat-message-body', C: chatItem.messageParts.map(this._renderMessagePart.bind(this))},
                     ],
                 });
             }
@@ -137,7 +137,7 @@
             if (chatItem.type === 'CHAT_MESSAGE_PAID') {
                 const header = {
                     E: 'div',
-                    classList: ['chat-message-paid-header'],
+                    className: 'chat-message-paid-header',
                     style: {
                         color: this._convertArgbIntRgbaCss(chatItem.headerFgColor),
                         backgroundColor: this._convertArgbIntRgbaCss(chatItem.headerBgColor),
@@ -147,7 +147,7 @@
                             E: 'div',
                             C: {
                                 E: 'a',
-                                classList: ['chat-message-author'],
+                                className: 'chat-message-author',
                                 style: {color: this._convertArgbIntRgbaCss(chatItem.authorNameColor)},
                                 href: `https://www.youtube.com/channel/${encodeURIComponent(chatItem.authorChannelId)}`,
                                 rel: 'noopener noreferrer',
@@ -157,21 +157,21 @@
                         },
                         {
                             E: 'div',
-                            C: {E: 'span', classList: ['chat-message-paid-amount'], C: chatItem.paidAmount}
+                            C: {E: 'span', className: 'chat-message-paid-amount', C: chatItem.paidAmount}
                         }
                     ]
                 };
 
                 const body = {
                     E: 'div',
-                    classList: ['chat-message-paid-body'],
+                    className: 'chat-message-paid-body',
                     style: {
                         color: this._convertArgbIntRgbaCss(chatItem.bodyFgColor),
                         backgroundColor: this._convertArgbIntRgbaCss(chatItem.bodyBgColor),
                     },
                     C: {
                         E: 'span',
-                        classList: ['chat-message-body'],
+                        className: 'chat-message-body',
                         style: {color: chatItem.bodyFgColor},
                         C: chatItem.messageParts.map(this._renderMessagePart.bind(this))
                     }
@@ -179,7 +179,7 @@
 
                 return buildDom({
                     E: 'div',
-                    classList: ['chat-message-paid'],
+                    className: 'chat-message chat-message-paid',
                     dataset: {id: chatItem.id},
                     C: [header, body],
                 });
@@ -196,7 +196,7 @@
             if (part.emoji) {
                 return {
                     E: 'img',
-                    classList: ['chat-emoji'],
+                    className: 'chat-emoji',
                     src: part.emoji.url,
                     alt: part.emoji.name,
                     title: part.emoji.name,

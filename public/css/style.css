@@ -43,8 +43,12 @@
     height: 100%;
 }
 
-.chat-message .chat-message-author {
-    padding-right: 1em;
+.chat-message {
+    padding: 2px;
+}
+
+.chat-message-normal .chat-message-body {
+    padding-left: 1em;
 }
 
 .chat-message-author {
