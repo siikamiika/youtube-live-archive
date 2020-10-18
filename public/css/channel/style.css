@@ -1,0 +1,24 @@
+.video-card-list {
+    list-style: none;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.video-card {
+    flex: 0 1 210px;
+    padding: 2px;
+}
+
+.video-card a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.video-card-thumbnail {
+    width: 210px;
+}
+
+.video-card-date {
+    font-size: 80%;
+}

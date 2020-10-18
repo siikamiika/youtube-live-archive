@@ -17,6 +17,8 @@ class Video extends Model
         'id' => 'string',
     ];
 
+    protected $dates = ['upload_date'];
+
     public function channel()
     {
         return $this->belongsTo(Channel::class);
