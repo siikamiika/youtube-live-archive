@@ -15,8 +15,21 @@
     color: inherit;
 }
 
+.video-card-thumbnail-container {
+    position: relative;
+}
+
 .video-card-thumbnail {
     width: 210px;
+}
+
+.video-card-duration {
+    font-size: 80%;
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    background-color: black;
+    color: white;
 }
 
 .video-card-date {

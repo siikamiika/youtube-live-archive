@@ -23,7 +23,10 @@
             @foreach ($videos as $video)
                 <li class="video-card">
                     <a href="{{ rroute('video', ['video' => $video]) }}">
-                        <div><img class="video-card-thumbnail" src="{{ $video->thumbnail }}" alt="thumbnail"></div>
+                        <div class="video-card-thumbnail-container">
+                            <img class="video-card-thumbnail" src="{{ $video->thumbnail }}" alt="thumbnail">
+                            <div class="video-card-duration">{{ gmdate('H:i:s', $video->duration) }}</div>
+                        </div>
                         <div><span class="video-card-title">{{ $video->title }}</span></div>
                         <div><span class="video-card-date">{{ $video->upload_date->format('Y-m-d') }} ({{ $video->upload_date->diffForHumans() }})</span></div>
                     </a>

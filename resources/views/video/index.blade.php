@@ -30,7 +30,6 @@
             <div>
                 <h1>{{$video->title}}</h1>
                 <ul>
-                    <li>Duration: {{$video->duration}}</li>
                     <li>Views: {{$video->view_count}}</li>
                     <li>Rating: {{$video->average_rating}}</li>
                     <li>Uploaded: {{$video->upload_date}}</li>
