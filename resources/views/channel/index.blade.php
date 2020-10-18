@@ -9,16 +9,28 @@
     </head>
     <body>
         <h1>{{ $channel->name }}</h1>
+        <div class="video-card-list-controls">
+            @foreach ($sortFields as [$field, $defaultSortDirection, $description])
+                <a
+                    href="{{ rroute('channel', ['channel' => $channel->id] + sort_params($field, 'uploaded', $defaultSortDirection)) }}"
+                    class="video-card-list-control sort-{{ $field }}"
+                >
+                    {{ $description }} {{ sort_symbol($field, 'uploaded') }}
+                </a>
+            @endforeach
+        </div>
         <ul class="video-card-list">
-            @foreach ($channel->videos as $video)
+            @foreach ($videos as $video)
                 <li class="video-card">
                     <a href="{{ rroute('video', ['video' => $video]) }}">
-                        <div><img class="video-card-thumbnail" src="{{ $video->thumbnail }}" alt="thumbnail"></img></div>
+                        <div><img class="video-card-thumbnail" src="{{ $video->thumbnail }}" alt="thumbnail"></div>
                         <div><span class="video-card-title">{{ $video->title }}</span></div>
                         <div><span class="video-card-date">{{ $video->upload_date->format('Y-m-d') }} ({{ $video->upload_date->diffForHumans() }})</span></div>
                     </a>
                 </li>
             @endforeach
         </ul>
+
+        {{ $videos->withQueryString()->links('channel.pagination.videos') }}
     </body>
 </html>

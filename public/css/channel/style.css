@@ -22,3 +22,10 @@
 .video-card-date {
     font-size: 80%;
 }
+
+.video-card-list-controls .video-card-list-control {
+    display: inline-block;
+    text-decoration: none;
+    color: inherit;
+    padding: 5px;
+}
