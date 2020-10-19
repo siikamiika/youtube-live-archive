@@ -69,6 +69,7 @@
         <script type="text/javascript">
             window.app = window.app || {};
             app.liveChatResource = {!! json_encode($files->live_chat->url ?? null) !!};
+            app.videoId = {!! json_encode($video->id) !!};
         </script>
         <script type="text/javascript" src="/js/video/video.js"></script>
         <script type="text/javascript" src="/js/video/live-chat.js"></script>
