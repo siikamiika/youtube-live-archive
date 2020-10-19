@@ -21,7 +21,7 @@
 
         <div class="video-card-list-controls">
             <div class="video-card-list-filtering">
-                <form method="get">
+                <form action="{{ rroute('channel', ['channel' => $channel]) }}" method="get">
                     @foreach (request()->all() as $key => $value)
                         @if (in_array($key, ['contains_text', 'archived_only']))
                             @continue
