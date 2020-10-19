@@ -40,8 +40,11 @@
     color: white;
 }
 
-.video-card-date, .video-card-viewcount, .video-card-rating {
+.video-card-sub {
     font-size: 80%;
+}
+
+.video-card-date, .video-card-viewcount, .video-card-rating {
     white-space: nowrap;
 }
 
