@@ -11,23 +11,7 @@ use Illuminate\Http\Request;
 class ChannelController extends BaseController
 {
     public function index(Request $request, \App\Models\Channel $channel) {
-        $orderField = [
-            'uploaded' => 'upload_date',
-            'views' => 'view_count',
-            'rating' => 'average_rating',
-            'duration' => 'duration',
-            'name' => 'title',
-        ][$request->input('sort')] ?? 'upload_date';
-
-        $orderDirection = [
-            'desc' => 'desc',
-            'asc' => 'asc',
-        ][$request->input('sort_direction')] ?? 'desc';
-
         $videosQuery = $channel->videos();
-
-        // sort
-        $videosQuery->orderBy($orderField, $orderDirection);
 
         // filter
         if ($request->input('archived_only')) {
@@ -41,21 +25,36 @@ class ChannelController extends BaseController
             });
         }
 
+        // sort
+        $orderField = [
+            'uploaded' => 'upload_date',
+            'views' => 'view_count',
+            'rating' => 'average_rating',
+            'duration' => 'duration',
+            'name' => 'title',
+        ][$request->input('sort')] ?? 'upload_date';
+
+        $orderDirection = [
+            'desc' => 'desc',
+            'asc' => 'asc',
+        ][$request->input('sort_direction')] ?? 'desc';
+
+        $videosQuery->orderBy($orderField, $orderDirection);
+
+        // paginate
         $videos = $videosQuery->paginate(20);
         $videos->withPath('/channel/' . $channel->id);
-
-        $sortFields = [
-            ['uploaded', 'desc', 'Uploaded'],
-            ['views', 'desc', 'Views'],
-            ['rating', 'desc', 'Rating'],
-            ['duration', 'desc', 'Duration'],
-            ['name', 'asc', 'Name'],
-        ];
 
         return view('channel/index', [
             'channel' => $channel,
             'videos' => $videos,
-            'sortFields' => $sortFields,
+            'sortFields' => [
+                ['uploaded', 'desc', 'Uploaded'],
+                ['views', 'desc', 'Views'],
+                ['rating', 'desc', 'Rating'],
+                ['duration', 'desc', 'Duration'],
+                ['name', 'asc', 'Name'],
+            ],
         ]);
     }
 }
