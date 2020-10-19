@@ -27,6 +27,10 @@
     opacity: 0.25;
 }
 
+.video-card-title {
+    word-break: break-word;
+}
+
 .video-card-duration {
     font-size: 80%;
     position: absolute;

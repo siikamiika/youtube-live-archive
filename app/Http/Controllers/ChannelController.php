@@ -42,7 +42,7 @@ class ChannelController extends BaseController
         $videosQuery->orderBy($orderField, $orderDirection);
 
         // paginate
-        $videos = $videosQuery->paginate(20);
+        $videos = $videosQuery->paginate(30);
         $videos->withPath(rroute('channel', ['channel' => $channel]));
 
         return view('channel/index', [
