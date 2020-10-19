@@ -32,7 +32,7 @@
 }
 
 .video-card-duration {
-    font-size: 80%;
+    font-size: 85%;
     position: absolute;
     right: 0px;
     bottom: 3px;
@@ -57,7 +57,7 @@
 }
 
 .video-card-sub {
-    font-size: 80%;
+    font-size: 85%;
     color: gray;
 }
 

@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ $channel->name }} - YouTube Live Archive</title>
 
+        <link href="/css/style.css" rel="stylesheet">
         <link href="/css/channel/style.css" rel="stylesheet">
     </head>
     <body>

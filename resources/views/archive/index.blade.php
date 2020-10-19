@@ -4,6 +4,8 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Archive new video - YouTube Live Archive</title>
+
+        <link href="/css/style.css" rel="stylesheet">
     </head>
     <body>
         <h1>Archive new video</h1>
