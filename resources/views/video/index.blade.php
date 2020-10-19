@@ -9,7 +9,7 @@
     </head>
     <body>
         <div>
-            @if ($video->archived)
+            @if ($video->archived && $files->video)
                 <div class="video-content-container">
                     <div class="video-container">
                         <video id="video" controls poster="{{$video->thumbnail}}">
@@ -27,6 +27,12 @@
                     </div>
 
                     <div id="live-chat"></div>
+                </div>
+            @elseif ($video->archived)
+                {{-- TODO have a dedicated status for this somewhere. Also show progress --}}
+                <div>
+                    Video is being archived. Please come back later. If nothing happens, force video archival again from
+                    <a href="/video_archive">/video_archive</a>.
                 </div>
             @else
                 <div>
