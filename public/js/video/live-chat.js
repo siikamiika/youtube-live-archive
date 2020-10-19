@@ -195,11 +195,15 @@
 
             if (part.emoji) {
                 return {
-                    E: 'img',
-                    className: 'chat-emoji',
-                    src: part.emoji.url,
-                    alt: part.emoji.name,
-                    title: part.emoji.name,
+                    E: 'div',
+                    className: 'chat-emoji-container',
+                    C: {
+                        E: 'img',
+                        className: 'chat-emoji',
+                        src: part.emoji.url,
+                        alt: part.emoji.name,
+                        title: part.emoji.name,
+                    }
                 };
             }
         }
