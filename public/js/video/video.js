@@ -24,6 +24,7 @@
     });
 
     window.addEventListener('beforeunload', (event) => {
+        if (notPlayedYet) { return; }
         window.localStorage.setItem(`video-pos-${app.videoId}`, JSON.stringify(video.currentTime));
     });
 })();
