@@ -52,11 +52,14 @@
 
         <ul class="video-card-list">
             @foreach ($videos as $video)
-                <li class="video-card {{ $video->archived ? '' : 'unarchived' }}">
+                <li class="video-card {{ $video->archived ? '' : 'unarchived' }}" data-video-id="{{ $video->id }}" data-duration="{{ $video->duration }}">
                     <a href="{{ rroute('video', ['video' => $video]) }}">
                         <div class="video-card-thumbnail-container">
                             <img class="video-card-thumbnail" src="{{ $video->thumbnail }}" alt="thumbnail">
                             <div class="video-card-duration">{{ gmdate('H:i:s', $video->duration) }}</div>
+                            <div class="video-card-progress">
+                                <div class="video-card-progress-bar"></div>
+                            </div>
                         </div>
                         <div><span class="video-card-title">{{ $video->title }}</span></div>
                         @if ($video->upload_date && $video->view_count && $video->average_rating)
@@ -74,5 +77,7 @@
         </ul>
 
         {{ $videos->withQueryString()->links('channel.pagination.videos') }}
+
+        <script type="text/javascript" src="/js/channel/video-cards.js"></script>
     </body>
 </html>

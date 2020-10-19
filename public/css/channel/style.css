@@ -35,9 +35,25 @@
     font-size: 80%;
     position: absolute;
     right: 0px;
-    bottom: 0px;
+    bottom: 3px;
     background-color: black;
     color: white;
+}
+
+.video-card-progress {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 100%;
+    background-color: gray;
+    height: 3px;
+    visibility: hidden;
+}
+
+.video-card-progress-bar {
+    width: 0%;
+    background-color: red;
+    height: 3px;
 }
 
 .video-card-sub {
