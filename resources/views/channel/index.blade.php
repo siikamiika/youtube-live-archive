@@ -61,7 +61,7 @@
                         <div><span class="video-card-title">{{ $video->title }}</span></div>
                         @if ($video->upload_date && $video->view_count && $video->average_rating)
                             <div class="video-card-sub">
-                                <span class="video-card-date">{{ $video->upload_date->format('Y-m-d') }} ({{ $video->upload_date->diffForHumans() }})</span>
+                                <span class="video-card-date">{{ $video->upload_date->format('Y-m-d') }} ({{ $video->upload_date->diffForHumans(['short' => true]) }})</span>
                                 •
                                 <span class="video-card-viewcount">{{ number_format($video->view_count) }} views</span>
                                 •
