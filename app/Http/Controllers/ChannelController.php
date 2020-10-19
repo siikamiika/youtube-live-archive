@@ -43,7 +43,7 @@ class ChannelController extends BaseController
 
         // paginate
         $videos = $videosQuery->paginate(20);
-        $videos->withPath('/channel/' . $channel->id);
+        $videos->withPath(rroute('channel', ['channel' => $channel]));
 
         return view('channel/index', [
             'channel' => $channel,

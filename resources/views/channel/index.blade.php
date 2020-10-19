@@ -41,7 +41,7 @@
             <div class="video-card-list-sorting">
                 @foreach ($sortFields as [$field, $defaultSortDirection, $description])
                     <a
-                        href="{{ rroute('channel', ['channel' => $channel->id] + sort_params($field, 'uploaded', $defaultSortDirection) + request()->all()) }}"
+                        href="{{ rroute('channel', ['channel' => $channel] + sort_params($field, 'uploaded', $defaultSortDirection) + request()->all()) }}"
                         class="video-card-list-sort sort-{{ $field }}"
                     >
                         {{ $description }} {{ sort_symbol($field, 'uploaded') }}
