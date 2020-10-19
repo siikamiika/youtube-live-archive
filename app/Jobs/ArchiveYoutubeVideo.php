@@ -81,6 +81,8 @@ class ArchiveYoutubeVideo implements ShouldQueue
             // TODO tables: categories, tags
         ]);
 
+        $video->save();
+
         foreach ($this->downloadVideo($video, $channel) as $path) {
             $fileDetails = MediaFile::getDetails($path);
             if (!$fileDetails) {
@@ -100,8 +102,6 @@ class ArchiveYoutubeVideo implements ShouldQueue
                 ]
             );
         }
-
-        $video->save();
     }
 
     private function fetchVideoDetails(string $videoId)
