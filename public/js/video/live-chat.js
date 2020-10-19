@@ -353,11 +353,18 @@
         return;
     }
 
-    const liveChat = new LiveChat(
-        app.liveChatResource,
-        document.querySelector('#video'),
-        document.querySelector('#live-chat'),
-    );
+    const videoElement = document.querySelector('#video');
+    const liveChatElement = document.querySelector('#live-chat');
 
-    setInterval(() => liveChat.updateLiveChat(), 250);
+    const liveChat = new LiveChat(app.liveChatResource, videoElement, liveChatElement);
+
+    let liveChatIntervalId = null;
+
+    videoElement.addEventListener('playing', (event) => {
+        liveChatIntervalId = setInterval(() => liveChat.updateLiveChat(), 250);
+    });
+
+    videoElement.addEventListener('pause', (event) => {
+        clearInterval(liveChatIntervalId);
+    });
 })();
