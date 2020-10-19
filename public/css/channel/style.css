@@ -36,8 +36,9 @@
     color: white;
 }
 
-.video-card-date {
+.video-card-date, .video-card-viewcount {
     font-size: 80%;
+    white-space: nowrap;
 }
 
 .video-card-list-sorting .video-card-list-sort {

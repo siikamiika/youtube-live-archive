@@ -59,8 +59,12 @@
                             <div class="video-card-duration">{{ gmdate('H:i:s', $video->duration) }}</div>
                         </div>
                         <div><span class="video-card-title">{{ $video->title }}</span></div>
-                        @if ($video->upload_date)
-                            <div><span class="video-card-date">{{ $video->upload_date->format('Y-m-d') }} ({{ $video->upload_date->diffForHumans() }})</span></div>
+                        @if ($video->upload_date && $video->view_count)
+                            <div>
+                                <span class="video-card-date">{{ $video->upload_date->format('Y-m-d') }} ({{ $video->upload_date->diffForHumans() }})</span>
+                                •
+                                <span class="video-card-viewcount">{{ number_format($video->view_count) }} views</span>
+                            </div>
                         @endif
                     </a>
                 </li>
