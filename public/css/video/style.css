@@ -45,6 +45,7 @@
 
 .chat-message {
     padding: 2px;
+    line-height: 28px;
 }
 
 .chat-message-normal .chat-message-body {
@@ -64,9 +65,6 @@
     display: inline-block;
     width: 32px;
     height: 14px;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    margin-bottom: -8px;
 }
 
 .chat-emoji {
