@@ -11,7 +11,7 @@
 
 #live-chat {
     flex: 1 1 1000px;
-    overflow: scroll;
+    overflow-y: scroll;
     word-break: break-word;
     margin: 2px;
 }
