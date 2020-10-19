@@ -59,11 +59,13 @@
                             <div class="video-card-duration">{{ gmdate('H:i:s', $video->duration) }}</div>
                         </div>
                         <div><span class="video-card-title">{{ $video->title }}</span></div>
-                        @if ($video->upload_date && $video->view_count)
+                        @if ($video->upload_date && $video->view_count && $video->average_rating)
                             <div>
                                 <span class="video-card-date">{{ $video->upload_date->format('Y-m-d') }} ({{ $video->upload_date->diffForHumans() }})</span>
                                 •
                                 <span class="video-card-viewcount">{{ number_format($video->view_count) }} views</span>
+                                •
+                                <span class="video-card-rating">{{ number_format($video->average_rating, 2) }}/5</span>
                             </div>
                         @endif
                     </a>

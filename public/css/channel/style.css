@@ -40,7 +40,7 @@
     color: white;
 }
 
-.video-card-date, .video-card-viewcount {
+.video-card-date, .video-card-viewcount, .video-card-rating {
     font-size: 80%;
     white-space: nowrap;
 }
