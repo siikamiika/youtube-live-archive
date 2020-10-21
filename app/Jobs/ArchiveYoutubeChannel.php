@@ -9,6 +9,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use \App\Domain\SystemCommand;
+use \App\Domain\YoutubeThumbnail;
 
 class ArchiveYoutubeChannel implements ShouldQueue
 {
@@ -37,7 +38,8 @@ class ArchiveYoutubeChannel implements ShouldQueue
      */
     public function handle()
     {
-        $first = true;
+        $channel = null;
+
         foreach ($this->fetchChannelVideoIds($this->channelUrl) as $videoId) {
             $video = \App\Models\Video::find($videoId);
             if ($video) {
@@ -51,9 +53,8 @@ class ArchiveYoutubeChannel implements ShouldQueue
 
             $videoDetails = $this->fetchVideoDetails($videoId);
 
-            if ($first) {
-                $first = false;
-                \App\Models\Channel::firstOrCreate(
+            if (!$channel) {
+                $channel = \App\Models\Channel::firstOrCreate(
                     ['id' => $videoDetails['channel_id']],
                     ['name' => $videoDetails['uploader']]
                 );
@@ -66,7 +67,7 @@ class ArchiveYoutubeChannel implements ShouldQueue
                 'duration' => $videoDetails['duration'],
                 'view_count' => $videoDetails['view_count'],
                 'average_rating' => $videoDetails['average_rating'],
-                'thumbnail' => $videoDetails['thumbnail'],
+                'thumbnail' => YoutubeThumbnail::download($videoDetails['thumbnail'], $video, $channel),
                 'archived' => false,
                 'upload_date' => sprintf(
                     '%s-%s-%s',

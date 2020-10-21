@@ -10,6 +10,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use \App\Domain\MediaFile;
 use \App\Domain\SystemCommand;
+use \App\Domain\YoutubeThumbnail;
 
 class ArchiveYoutubeVideo implements ShouldQueue
 {
@@ -70,7 +71,7 @@ class ArchiveYoutubeVideo implements ShouldQueue
             'duration' => $videoDetails['duration'],
             'view_count' => $videoDetails['view_count'],
             'average_rating' => $videoDetails['average_rating'],
-            'thumbnail' => $videoDetails['thumbnail'],
+            'thumbnail' => YoutubeThumbnail::download($videoDetails['thumbnail'], $video, $channel),
             'archived' => true,
             'upload_date' => sprintf(
                 '%s-%s-%s',
