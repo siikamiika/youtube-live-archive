@@ -12,6 +12,7 @@ use \App\Domain\MediaFile;
 use \App\Domain\SystemCommand;
 use \App\Domain\YoutubeThumbnail;
 use \App\Domain\YoutubeLiveChatEmojiDownloader;
+use \App\Domain\YoutubeChannelResourceDownloader;
 
 class ArchiveYoutubeVideo implements ShouldQueue
 {
@@ -64,6 +65,11 @@ class ArchiveYoutubeVideo implements ShouldQueue
             ['id' => $videoDetails['channel_id']],
             ['name' => $videoDetails['uploader']]
         );
+
+        $channelResourceDownloader = new YoutubeChannelResourceDownloader($channel);
+        $channelResourceDownloader->loadChannel();
+        $channelResourceDownloader->downloadBanner();
+        $channelResourceDownloader->downloadAvatar();
 
         $video->setRelation('channel', $channel);
 

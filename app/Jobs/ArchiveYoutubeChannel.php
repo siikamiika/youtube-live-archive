@@ -10,6 +10,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use \App\Domain\SystemCommand;
 use \App\Domain\YoutubeThumbnail;
+use \App\Domain\YoutubeChannelResourceDownloader;
 
 class ArchiveYoutubeChannel implements ShouldQueue
 {
@@ -58,6 +59,11 @@ class ArchiveYoutubeChannel implements ShouldQueue
                     ['id' => $videoDetails['channel_id']],
                     ['name' => $videoDetails['uploader']]
                 );
+
+                $channelResourceDownloader = new YoutubeChannelResourceDownloader($channel);
+                $channelResourceDownloader->loadChannel();
+                $channelResourceDownloader->downloadBanner();
+                $channelResourceDownloader->downloadAvatar();
             }
 
             $video->fill([

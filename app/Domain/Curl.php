@@ -6,6 +6,8 @@ class Curl
 {
     private string $url;
 
+    private string $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36';
+
     public function __construct(string $url)
     {
         $this->url = $url;
@@ -20,7 +22,7 @@ class Curl
         curl_setopt($ch, CURLOPT_FILE, $fp);
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36');
+        curl_setopt($ch, CURLOPT_USERAGENT, $this->userAgent);
         curl_exec($ch);
         curl_close($ch);
         fclose($fp);
@@ -40,6 +42,18 @@ class Curl
         chmod($path, 0644);
 
         return $path;
+    }
+
+    public function downloadString(): string
+    {
+        $ch = curl_init($this->url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_USERAGENT, $this->userAgent);
+        $data = curl_exec($ch);
+        curl_close($ch);
+        return $data;
     }
 
     private function mimeToExtension(string $mimeType): ?string
