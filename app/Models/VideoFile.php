@@ -23,6 +23,16 @@ class VideoFile extends Model
         );
     }
 
+    public function getPath(Video $video)
+    {
+        return storage_path(sprintf(
+            'app/public/video_data/%s/%s/%s',
+            $video->channel->id,
+            $video->id,
+            $this->filename,
+        ));
+    }
+
     public function video()
     {
         return $this->belongsTo(Video::class);

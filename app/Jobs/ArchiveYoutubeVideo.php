@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use \App\Domain\MediaFile;
 use \App\Domain\SystemCommand;
 use \App\Domain\YoutubeThumbnail;
+use \App\Domain\YoutubeLiveChatEmojiDownloader;
 
 class ArchiveYoutubeVideo implements ShouldQueue
 {
@@ -64,6 +65,8 @@ class ArchiveYoutubeVideo implements ShouldQueue
             ['name' => $videoDetails['uploader']]
         );
 
+        $video->setRelation('channel', $channel);
+
         $video->fill([
             'channel_id' => $videoDetails['channel_id'],
             'title' => $videoDetails['title'],
@@ -102,6 +105,11 @@ class ArchiveYoutubeVideo implements ShouldQueue
                     'raw_details' => json_encode($fileDetails['raw_details']),
                 ]
             );
+        }
+
+        $liveChatEmojiDownloader = new YoutubeLiveChatEmojiDownloader($video);
+        if ($liveChatEmojiDownloader->openLiveChat()) {
+            $liveChatEmojiDownloader->downloadChatEmoji();
         }
     }
 

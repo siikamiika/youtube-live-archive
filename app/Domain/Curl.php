@@ -11,7 +11,7 @@ class Curl
         $this->url = $url;
     }
 
-    public function downloadFile(string $basePath)
+    public function downloadFile(string $basePath, array $acceptedMime=[])
     {
         $downloadPath = tempnam('/tmp', 'curl-dl-');
 
@@ -25,7 +25,12 @@ class Curl
         curl_close($ch);
         fclose($fp);
 
-        $extension = $this->mimeToExtension((new \finfo)->file($downloadPath, FILEINFO_MIME_TYPE)) ?? '';
+        $mime = (new \finfo)->file($downloadPath, FILEINFO_MIME_TYPE);
+        if ($acceptedMime && !in_array($mime, $acceptedMime, true)) {
+            throw new \RuntimeException('File type not allowed: ' . $mime);
+        }
+
+        $extension = $this->mimeToExtension($mime) ?? '';
         if ($extension) {
             $extension = '.' . $extension;
         }

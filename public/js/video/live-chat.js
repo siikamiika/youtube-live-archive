@@ -232,7 +232,7 @@
                     if (run.emoji) {
                         return {
                             emoji: {
-                                url: run.emoji.image.thumbnails.sort((a, b) => a.width <= b.width)[0].url,
+                                url: '/storage/images/live_chat_emoji/' + app.channelId + '/' + run.emoji.emojiId.split('/')[1] + '.png',
                                 name: run.emoji.shortcuts[0],
                             }
                         };
