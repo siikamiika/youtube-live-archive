@@ -70,7 +70,7 @@
         <div class="channel">
             <a href="{{ rroute('channel', ['channel' => $video->channel]) }}">
                 <div class="channel-avatar"><img src="/storage/images/channel_avatars/{{ $video->channel->id }}/avatar.jpeg"></div>
-                <span>{{ $video->channel->name }}</span>
+                <span class="channel-name">{{ $video->channel->name }}</span>
             </a>
         </div>
 
