@@ -1,0 +1,31 @@
+.channel-list {
+    list-style: none;
+}
+
+.channel {
+    padding: 10px;
+}
+
+.channel-avatar {
+    display: inline-block;
+    width: 200px;
+}
+
+.channel-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    vertical-align: middle;
+}
+
+.channel .channel-text {
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: 500;
+    font-size: 1.5em;
+}
+
+.channel a {
+    text-decoration: none;
+    color: inherit;
+}
