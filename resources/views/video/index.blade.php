@@ -37,6 +37,7 @@
                 </div>
             @else
                 <div>
+                    <div class="video-thumbnail-preview"><img src="{{ $video->thumbnail }}"></div>
                     <span>Video not archived.</span>
                     <form action="{{ rroute('video_archive_add') }}" method="post">
                         @csrf
@@ -46,21 +47,33 @@
                     </form>
                 </div>
             @endif
-            <div>
-                <h1>{{$video->title}}</h1>
-                <ul>
-                    <li>Views: {{$video->view_count}}</li>
-                    <li>Rating: {{$video->average_rating}}</li>
-                    <li>Uploaded: {{$video->upload_date}}</li>
-                </ul>
+        </div>
+
+        <div>
+            <h1>{{$video->title}}</h1>
+            <div class="video-sub">
+                @if ($video->upload_date && $video->view_count && $video->average_rating)
+                    <span class="video-date">{{ $video->upload_date->format('Y-m-d') }} ({{ $video->upload_date->diffForHumans(['short' => true]) }})</span>
+                    •
+                    <span class="video-viewcount">{{ number_format($video->view_count) }} views</span>
+                    •
+                    <span class="video-rating">{{ number_format($video->average_rating, 2) }}/5</span>
+                    •
+                    <a class="youtube-video-link" href="https://www.youtube.com/watch?v={{ $video->id }}">YouTube</a>
+                @endif
             </div>
         </div>
-        <div>
-            <a href="{{ rroute('channel', ['channel' => $video->channel]) }}">{{ $video->channel->name }}</a>
+
+        <hr>
+
+
+        <div class="channel">
+            <a href="{{ rroute('channel', ['channel' => $video->channel]) }}">
+                <div class="channel-avatar"><img src="/storage/images/channel_avatars/{{ $video->channel->id }}/avatar.jpeg"></div>
+                <span>{{ $video->channel->name }}</span>
+            </a>
         </div>
-        <div>
-            <a href="https://www.youtube.com/watch?v={{ $video->id }}">YouTube link</a>
-        </div>
+
         <div>
             <pre class="video-description">{{
                 $video->description

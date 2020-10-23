@@ -13,7 +13,10 @@
 
         <div class="channel-header">
             <div class="channel-header-avatar"><img src="/storage/images/channel_avatars/{{ $channel->id }}/avatar.jpeg"></div>
-            <h1>{{ $channel->name }}</h1>
+            <div class="channel-header-text">
+                <div class="channel-name">{{ $channel->name }}</div>
+                <div><a class="youtube-channel-link" href="">YouTube</a></div>
+            </div>
         </div>
 
         <form action="{{ rroute('video_archive_add_channel') }}" method="post">

@@ -1,3 +1,4 @@
+/* Banner */
 .channel-banner {
     width: 100%;
 }
@@ -6,13 +7,25 @@
     width: 100%;
 }
 
+
+/* Header */
+
 .channel-header {
     padding: 10px;
 }
 
-.channel-header h1 {
+.channel-header .channel-header-text {
     display: inline-block;
     vertical-align: middle;
+}
+
+.channel-header .channel-name {
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.channel-header .youtube-channel-link {
+    color: inherit;
 }
 
 .channel-header-avatar {
@@ -26,6 +39,9 @@
     border-radius: 50%;
     vertical-align: middle;
 }
+
+
+/* Videos */
 
 .video-card-list {
     list-style: none;
