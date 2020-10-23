@@ -1,3 +1,32 @@
+.channel-banner {
+    width: 100%;
+}
+
+.channel-banner img {
+    width: 100%;
+}
+
+.channel-header {
+    padding: 10px;
+}
+
+.channel-header h1 {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.channel-header-avatar {
+    display: inline-block;
+    width: 100px;
+}
+
+.channel-header-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    vertical-align: middle;
+}
+
 .video-card-list {
     list-style: none;
     display: flex;

@@ -9,7 +9,12 @@
         <link href="/css/channel/style.css" rel="stylesheet">
     </head>
     <body>
-        <h1>{{ $channel->name }}</h1>
+        <div class="channel-banner"><img src="/storage/images/channel_banners/{{ $channel->id }}/banner.jpeg"></div>
+
+        <div class="channel-header">
+            <div class="channel-header-avatar"><img src="/storage/images/channel_avatars/{{ $channel->id }}/avatar.jpeg"></div>
+            <h1>{{ $channel->name }}</h1>
+        </div>
 
         <form action="{{ rroute('video_archive_add_channel') }}" method="post">
             @csrf
