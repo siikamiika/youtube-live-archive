@@ -61,15 +61,19 @@ class ArchiveYoutubeVideo implements ShouldQueue
             throw new \RuntimeException('No video details');
         }
 
-        $channel = \App\Models\Channel::firstOrCreate(
-            ['id' => $videoDetails['channel_id']],
-            ['name' => $videoDetails['uploader']]
-        );
+        $channel = \App\Models\Channel::find($videoDetails['channel_id']);
+        if (!$channel) {
+            $channel = new \App\Models\Channel;
+            $channel->id = $videoDetails['channel_id'];
+            $channel->name = $videoDetails['uploader'];
 
-        $channelResourceDownloader = new YoutubeChannelResourceDownloader($channel);
-        $channelResourceDownloader->loadChannel();
-        $channelResourceDownloader->downloadBanner();
-        $channelResourceDownloader->downloadAvatar();
+            $channelResourceDownloader = new YoutubeChannelResourceDownloader($channel);
+            $channelResourceDownloader->loadChannel();
+            $channelResourceDownloader->downloadBanner();
+            $channelResourceDownloader->downloadAvatar();
+
+            $channel->save();
+        }
 
         $video->setRelation('channel', $channel);
 
