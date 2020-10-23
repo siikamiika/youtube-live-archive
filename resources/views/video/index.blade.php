@@ -59,7 +59,7 @@
                     •
                     <span class="video-rating">{{ number_format($video->average_rating, 2) }}/5</span>
                     •
-                    <a class="youtube-video-link" href="https://www.youtube.com/watch?v={{ $video->id }}">YouTube</a>
+                    <a target="_blank" rel="noopener noreferrer" class="youtube-video-link" href="https://www.youtube.com/watch?v={{ $video->id }}">YouTube</a>
                 @endif
             </div>
         </div>

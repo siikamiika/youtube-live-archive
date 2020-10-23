@@ -15,7 +15,7 @@
             <div class="channel-header-avatar"><img src="/storage/images/channel_avatars/{{ $channel->id }}/avatar.jpeg"></div>
             <div class="channel-header-text">
                 <div class="channel-name">{{ $channel->name }}</div>
-                <div><a class="youtube-channel-link" href="">YouTube</a></div>
+                <div><a target="_blank" rel="noopener noreferrer" class="youtube-channel-link" href="https://www.youtube.com/channel/{{ $channel->id }}">YouTube</a></div>
             </div>
         </div>
 
