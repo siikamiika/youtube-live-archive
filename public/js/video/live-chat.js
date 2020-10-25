@@ -488,7 +488,7 @@
 
     videoElement.addEventListener('playing', (event) => {
         clearInterval(liveChatIntervalId);
-        liveChatIntervalId = setInterval(() => liveChat.updateLiveChat(), 250);
+        liveChatIntervalId = setInterval(() => liveChat.updateLiveChat(), 100);
     });
 
     videoElement.addEventListener('pause', (event) => {
