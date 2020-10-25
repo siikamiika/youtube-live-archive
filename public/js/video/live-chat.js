@@ -383,7 +383,7 @@
         async updateLiveChat() {
             const currentTimeMs = this._videoElement.currentTime * 1000;
             const chatEvents = [];
-            for await (const chatItem of this._getRange(currentTimeMs - 30000, currentTimeMs)) {
+            for await (const chatItem of this._getChatItems(currentTimeMs)) {
                 chatEvents.push(...this._parser.parse(chatItem));
             }
             this._renderer.render(chatEvents);
@@ -422,28 +422,37 @@
             }
         }
 
-        async *_getRange(start, end) {
-            if (this._cache.length === 0 || this._chatItemOffset(this._cache[this._cache.length - 1]) < end) {
+        async *_getChatItems(time, nPrevious=100) {
+            if (this._cache.length === 0 || this._chatItemOffset(this._cache[this._cache.length - 1]) < time) {
                 for (;;) {
                     const {value, done} = await this._lineIterator.next();
                     if (done) { break; }
                     const chatItem = JSON.parse(value);
                     this._cache.push(chatItem);
-                    if (this._chatItemOffset(chatItem) > end) { break; }
+                    if (this._chatItemOffset(chatItem) > time) { break; }
                 }
             }
 
-            // TODO binary search
-            let prevOffset = 0;
-            for (const chatItem of this._cache) {
-                const offset = this._chatItemOffset(chatItem);
-                if (offset > end) {
-                    return;
+            let lo = 0;
+            let hi = this._cache.length - 1;
+            while (lo !== hi) {
+                const mid = Math.ceil((lo + hi) / 2);
+                const offset = this._chatItemOffset(this._cache[mid]);
+                if (offset > time) {
+                    hi = mid - 1;
+                } else {
+                    lo = mid
                 }
-                if (offset >= start) {
-                    yield chatItem;
-                }
-                prevOffset = offset;
+            }
+
+            const chatItems = [];
+            let index = lo;
+            while (chatItems.length < nPrevious && index >= 0) {
+                chatItems.push(this._cache[index]);
+                index--;
+            }
+            for (let i = chatItems.length - 1; i >= 0; i--) {
+                yield chatItems[i];
             }
         }
 
