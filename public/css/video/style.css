@@ -41,8 +41,14 @@
     line-height: 28px;
 }
 
+.chat-message-timestamp {
+    color: gray;
+    padding-right: 0.5em;
+    font-size: 70%;
+}
+
 .chat-message-normal .chat-message-body {
-    padding-left: 1em;
+    padding-left: 0.5em;
 }
 
 .chat-message-author {

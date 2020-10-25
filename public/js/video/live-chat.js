@@ -121,6 +121,7 @@
                     className: 'chat-message chat-message-normal',
                     dataset: {id: chatItem.id},
                     C: [
+                        {E: 'span', className: 'chat-message-timestamp', C: this._formatOffsetTime(chatItem.offset)},
                         this._renderAuthorName(chatItem),
                         {E: 'span', className: 'chat-message-body', C: chatItem.messageParts.map(this._renderMessagePart.bind(this))},
                     ],
@@ -258,10 +259,21 @@
             const a = ((color >> 24) & 0xff) / 0xff;
             return `rgba(${r}, ${g}, ${b}, ${a})`;
         }
+
+        _formatOffsetTime(offset) {
+            const h = Math.floor(offset / 3600000);
+            offset = offset % 3600000;
+            const m = Math.floor(offset / 60000);
+            offset = offset % 60000;
+            const s = Math.floor(offset / 1000);
+
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
     }
 
     class YoutubeLiveChatParser {
         *parse(data) {
+            const offset = Number(data?.replayChatItemAction?.videoOffsetTimeMsec);
             for (const action of data?.replayChatItemAction?.actions || []) {
                 // TODO addLiveChatTickerItemAction
                 const chatAction = action?.addChatItemAction?.item;
@@ -291,6 +303,7 @@
                         authorName: renderer.authorName.simpleText,
                         messageParts: renderer.message ? renderer.message.runs.map(transformMessageRun) : [],
                         badges: this._parseBadges(renderer),
+                        offset,
                     };
                 } else if (chatAction.liveChatPaidMessageRenderer) {
                     const renderer = chatAction.liveChatPaidMessageRenderer;
@@ -307,6 +320,7 @@
                         bodyFgColor: renderer.bodyTextColor,
                         authorNameColor: renderer.authorNameTextColor,
                         badges: this._parseBadges(renderer),
+                        offset,
                     };
                 } else if (chatAction.liveChatMembershipItemRenderer) {
                     const renderer = chatAction.liveChatMembershipItemRenderer;
