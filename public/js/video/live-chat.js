@@ -121,14 +121,7 @@
                     className: 'chat-message chat-message-normal',
                     dataset: {id: chatItem.id},
                     C: [
-                        {
-                            E: 'a',
-                            className: 'chat-message-author',
-                            href: `https://www.youtube.com/channel/${encodeURIComponent(chatItem.authorChannelId)}`,
-                            rel: 'noopener noreferrer',
-                            target: '_blank',
-                            C: chatItem.authorName,
-                        },
+                        this._renderAuthorName(chatItem),
                         {E: 'span', className: 'chat-message-body', C: chatItem.messageParts.map(this._renderMessagePart.bind(this))},
                     ],
                 });
@@ -145,15 +138,7 @@
                     C: [
                         {
                             E: 'div',
-                            C: {
-                                E: 'a',
-                                className: 'chat-message-author',
-                                style: {color: this._convertArgbIntRgbaCss(chatItem.authorNameColor)},
-                                href: `https://www.youtube.com/channel/${encodeURIComponent(chatItem.authorChannelId)}`,
-                                rel: 'noopener noreferrer',
-                                target: '_blank',
-                                C: chatItem.authorName,
-                            }
+                            C: this._renderAuthorName(chatItem)
                         },
                         {
                             E: 'div',
@@ -172,7 +157,7 @@
                     C: {
                         E: 'span',
                         className: 'chat-message-body',
-                        style: {color: chatItem.bodyFgColor},
+                        style: {color: this._convertArgbIntRgbaCss(chatItem.bodyFgColor)},
                         C: chatItem.messageParts.map(this._renderMessagePart.bind(this))
                     }
                 };
@@ -186,6 +171,64 @@
             }
 
             // TODO other types
+        }
+
+        _renderAuthorName(chatItem) {
+            let isSponsor = false;
+            let sponsorDuration = null;
+            let sponsorUrl = null; // TODO show badge icon
+            let isOwner = false;
+            let isModerator = false;
+            let isVerified = false;
+
+            for (const badge of chatItem.badges) {
+                if (badge.type === 'sponsor') {
+                    isSponsor = true;
+                    sponsorDuration = badge.duration;
+                    sponsorUrl = badge.url;
+                } else if (badge.type === 'owner') {
+                    isOwner = true;
+                } else if (badge.type === 'moderator') {
+                    isModerator = true;
+                } else if (badge.type === 'verified') {
+                    isVerified = true;
+                }
+            }
+
+            const classNames = ['chat-message-author'];
+            if (isSponsor) {
+                classNames.push('chat-message-author-sponsor');
+            }
+            if (isOwner) {
+                classNames.push('chat-message-author-owner');
+            }
+            if (isModerator) {
+                classNames.push('chat-message-author-moderator');
+            }
+            if (isVerified) {
+                classNames.push('chat-message-author-verified');
+            }
+
+            const authorLink = {
+                E: 'a',
+                className: classNames.join(' '),
+                href: `https://www.youtube.com/channel/${encodeURIComponent(chatItem.authorChannelId)}`,
+                rel: 'noopener noreferrer',
+                target: '_blank',
+                C: chatItem.authorName,
+            };
+
+            if (sponsorDuration !== null) {
+                authorLink.title = sponsorDuration === 0
+                    ? 'New member'
+                    : `Member (${sponsorDuration} month${sponsorDuration === 1 ? '' : 's'})`;
+            }
+
+            if (chatItem.type === 'CHAT_MESSAGE_PAID') {
+                authorLink.style = {color: this._convertArgbIntRgbaCss(chatItem.authorNameColor)};
+            }
+
+            return authorLink;
         }
 
         _renderMessagePart(part) {
@@ -247,6 +290,7 @@
                         authorChannelId: renderer.authorExternalChannelId,
                         authorName: renderer.authorName.simpleText,
                         messageParts: renderer.message ? renderer.message.runs.map(transformMessageRun) : [],
+                        badges: this._parseBadges(renderer),
                     };
                 } else if (chatAction.liveChatPaidMessageRenderer) {
                     const renderer = chatAction.liveChatPaidMessageRenderer;
@@ -262,12 +306,67 @@
                         bodyBgColor: renderer.bodyBackgroundColor,
                         bodyFgColor: renderer.bodyTextColor,
                         authorNameColor: renderer.authorNameTextColor,
+                        badges: this._parseBadges(renderer),
                     };
                 } else if (chatAction.liveChatMembershipItemRenderer) {
                     const renderer = chatAction.liveChatMembershipItemRenderer;
                     // TODO
                 }
             }
+        }
+
+        _parseBadges(renderer) {
+            if (!renderer.authorBadges) {
+                return [];
+            }
+
+            const badges = [];
+            for (const badge of renderer.authorBadges) {
+                const badgeRenderer = badge.liveChatAuthorBadgeRenderer;
+
+                if (badgeRenderer.icon) {
+                    const icon = badgeRenderer.icon;
+                    if (icon.iconType === 'OWNER') {
+                        badges.push({type: 'owner'});
+                    }
+                    if (icon.iconType === 'MODERATOR') {
+                        badges.push({type: 'moderator'});
+                    }
+                    if (icon.iconType === 'VERIFIED') {
+                        badges.push({type: 'verified'});
+                    }
+                } else if (badgeRenderer.customThumbnail) {
+                    let duration = null;
+                    if (/New member/.test(badgeRenderer.tooltip)) {
+                        duration = 0;
+                    } else {
+                        const m = /Member \((?:(\d+) years?)|(?:(\d+) years?\, (\d+) months?)|(?:(\d+) months?)\)/.exec(badgeRenderer.tooltip);
+                        if (!m) {
+                            throw new Error('Cannot parse member badge duration');
+                        }
+
+                        if (m[1]) {
+                            duration = 12 * m[1];
+                        } else if (m[2]) {
+                            duration = 12 * m[2] + 1 * m[3];
+                        } else if (m[4]) {
+                            duration = 1 * m[4];
+                        }
+                    }
+
+                    let url = null;
+                    for (const d of [24, 12, 6, 2, 1, 0]) {
+                        if (d <= duration) {
+                            url = '/storage/images/sponsor_badges/' + app.channelId + '/' + d + '.png';
+                            break;
+                        }
+                    }
+
+                    badges.push({type: 'sponsor', duration, url})
+                }
+            }
+
+            return badges;
         }
     }
 
@@ -365,6 +464,7 @@
     let liveChatIntervalId = null;
 
     videoElement.addEventListener('playing', (event) => {
+        clearInterval(liveChatIntervalId);
         liveChatIntervalId = setInterval(() => liveChat.updateLiveChat(), 250);
     });
 

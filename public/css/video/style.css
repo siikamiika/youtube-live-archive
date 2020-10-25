@@ -50,6 +50,18 @@
     text-decoration: inherit;
 }
 
+.chat-message-author.chat-message-author-sponsor {
+    color: #2ba640;
+}
+
+.chat-message-author.chat-message-author-owner {
+    color: #ffd600;
+}
+
+.chat-message-author.chat-message-author-moderator {
+    color: #5e84f1;
+}
+
 .chat-message-paid-amount {
 }
 
