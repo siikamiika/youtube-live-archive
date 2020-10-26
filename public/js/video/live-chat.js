@@ -417,7 +417,7 @@
                         }
                     }
 
-                    badges.push({type: 'sponsor', duration, url})
+                    badges.push({type: 'sponsor', duration, url});
                 }
             }
 
@@ -496,7 +496,7 @@
                 if (offset > time) {
                     hi = mid - 1;
                 } else {
-                    lo = mid
+                    lo = mid;
                 }
             }
 
