@@ -56,6 +56,16 @@
     text-decoration: inherit;
 }
 
+/* New member */
+
+.chat-new-member {
+    background-color: #0f9d58;
+}
+
+.chat-new-member .chat-message-author.chat-message-author-sponsor {
+    color: #eee;
+}
+
 /* badge colors */
 
 .chat-message-author.chat-message-author-sponsor {

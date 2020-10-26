@@ -108,7 +108,7 @@
         }
 
         _clearLogUntil(messageId) {
-            for (const chatMessageElement of this._chatElement.querySelectorAll('.chat-message, .chat-message-paid')) {
+            for (const chatMessageElement of this._chatElement.querySelectorAll('.chat-message, .chat-new-member')) {
                 if (chatMessageElement.dataset.id === messageId) { break; }
                 this._chatElement.removeChild(chatMessageElement);
             }
@@ -168,6 +168,24 @@
                     className: 'chat-message chat-message-paid',
                     dataset: {id: chatItem.id},
                     C: [header, body],
+                });
+            }
+
+            if (chatItem.type === 'CHAT_NEW_MEMBER') {
+                return buildDom({
+                    E: 'div',
+                    className: 'chat-new-member',
+                    dataset: {id: chatItem.id},
+                    C: [
+                        {
+                            E: 'div',
+                            C: this._renderAuthorName(chatItem)
+                        },
+                        {
+                            E: 'div',
+                            C: chatItem.messageParts.map(this._renderMessagePart.bind(this))
+                        }
+                    ],
                 });
             }
 
@@ -339,7 +357,15 @@
                     };
                 } else if (chatAction.liveChatMembershipItemRenderer) {
                     const renderer = chatAction.liveChatMembershipItemRenderer;
-                    // TODO
+                    yield {
+                        type: 'CHAT_NEW_MEMBER',
+                        id: renderer.id,
+                        authorChannelId: renderer.authorExternalChannelId,
+                        authorName: renderer.authorName.simpleText,
+                        messageParts: renderer.headerSubtext ? renderer.headerSubtext.runs.map(transformMessageRun) : [],
+                        badges: this._parseBadges(renderer),
+                        offset,
+                    };
                 }
             }
         }
