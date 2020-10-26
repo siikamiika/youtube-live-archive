@@ -56,6 +56,8 @@
     text-decoration: inherit;
 }
 
+/* badge colors */
+
 .chat-message-author.chat-message-author-sponsor {
     color: #2ba640;
 }
@@ -69,8 +71,21 @@
     color: #5e84f1;
 }
 
+/* badge icons */
+
 .chat-message-author.chat-message-author-verified::after {
+    color: gray;
     content: " ✓";
+}
+
+.chat-message-author.chat-message-author-moderator::after {
+    color: gray;
+    content: " 🔧";
+}
+
+.chat-message-author.chat-message-author-verified.chat-message-author-moderator::after {
+    color: gray;
+    content: " ✓🔧";
 }
 
 .chat-message-paid-amount {
