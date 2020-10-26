@@ -177,7 +177,7 @@
         _renderAuthorName(chatItem) {
             let isSponsor = false;
             let sponsorDuration = null;
-            let sponsorUrl = null; // TODO show badge icon
+            let sponsorUrl = null;
             let isOwner = false;
             let isModerator = false;
             let isVerified = false;
@@ -196,9 +196,21 @@
                 }
             }
 
+            const linkContents = [chatItem.authorName];
+
             const classNames = ['chat-message-author'];
             if (isSponsor) {
                 classNames.push('chat-message-author-sponsor');
+                linkContents.push({
+                    E: 'div',
+                    className: 'chat-message-author-sponsor-badge-container',
+                    C: {
+                        E: 'img',
+                        className: 'chat-message-author-sponsor-badge',
+                        src: sponsorUrl,
+                        alt: 'Sponsor badge',
+                    }
+                });
             }
             if (isOwner) {
                 classNames.push('chat-message-author-owner');
@@ -216,7 +228,7 @@
                 href: `https://www.youtube.com/channel/${encodeURIComponent(chatItem.authorChannelId)}`,
                 rel: 'noopener noreferrer',
                 target: '_blank',
-                C: chatItem.authorName,
+                C: linkContents,
             };
 
             if (sponsorDuration !== null) {
@@ -357,15 +369,15 @@
                     if (/New member/.test(badgeRenderer.tooltip)) {
                         duration = 0;
                     } else {
-                        const m = /Member \((?:(\d+) years?)|(?:(\d+) years?\, (\d+) months?)|(?:(\d+) months?)\)/.exec(badgeRenderer.tooltip);
+                        const m = /Member \((?:(\d+) years?\, (\d+) months?)|(?:(\d+) years?)|(?:(\d+) months?)\)/.exec(badgeRenderer.tooltip);
                         if (!m) {
                             throw new Error('Cannot parse member badge duration');
                         }
 
                         if (m[1]) {
-                            duration = 12 * m[1];
-                        } else if (m[2]) {
-                            duration = 12 * m[2] + 1 * m[3];
+                            duration = 12 * m[1] + 1 * m[2];
+                        } else if (m[3]) {
+                            duration = 12 * m[3];
                         } else if (m[4]) {
                             duration = 1 * m[4];
                         }
@@ -374,7 +386,7 @@
                     let url = null;
                     for (const d of [24, 12, 6, 2, 1, 0]) {
                         if (d <= duration) {
-                            url = '/storage/images/sponsor_badges/' + app.channelId + '/' + d + '.png';
+                            url = '/storage/images/live_chat_sponsor_badges/' + app.channelId + '/' + d + '.png';
                             break;
                         }
                     }

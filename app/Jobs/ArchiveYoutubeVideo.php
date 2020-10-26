@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 use \App\Domain\MediaFile;
 use \App\Domain\SystemCommand;
 use \App\Domain\YoutubeThumbnail;
-use \App\Domain\YoutubeLiveChatEmojiDownloader;
+use \App\Domain\YoutubeLiveChatResourceDownloader;
 use \App\Domain\YoutubeChannelResourceDownloader;
 
 class ArchiveYoutubeVideo implements ShouldQueue
@@ -117,9 +117,9 @@ class ArchiveYoutubeVideo implements ShouldQueue
             );
         }
 
-        $liveChatEmojiDownloader = new YoutubeLiveChatEmojiDownloader($video);
-        if ($liveChatEmojiDownloader->openLiveChat()) {
-            $liveChatEmojiDownloader->downloadChatEmoji();
+        $liveChatResourceDownloader = new YoutubeLiveChatResourceDownloader($video);
+        if ($liveChatResourceDownloader->openLiveChat()) {
+            $liveChatResourceDownloader->downloadChatResources();
         }
     }
 
