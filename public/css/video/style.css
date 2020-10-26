@@ -61,11 +61,16 @@
 }
 
 .chat-message-author.chat-message-author-owner {
-    color: #ffd600;
+    background-color: #ffd600;
+    color: #111;
 }
 
 .chat-message-author.chat-message-author-moderator {
     color: #5e84f1;
+}
+
+.chat-message-author.chat-message-author-verified::after {
+    content: " ✓";
 }
 
 .chat-message-paid-amount {
