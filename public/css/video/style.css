@@ -74,18 +74,18 @@
 /* badge icons */
 
 .chat-message-author.chat-message-author-verified::after {
-    color: gray;
-    content: " ✓";
+    color: #eee;
+    content: " ✔";
 }
 
 .chat-message-author.chat-message-author-moderator::after {
-    color: gray;
+    color: #eee;
     content: " 🔧";
 }
 
 .chat-message-author.chat-message-author-verified.chat-message-author-moderator::after {
-    color: gray;
-    content: " ✓🔧";
+    color: #eee;
+    content: " ✔🔧";
 }
 
 .chat-message-paid-amount {
