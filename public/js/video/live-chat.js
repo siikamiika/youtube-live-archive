@@ -341,6 +341,8 @@
                     yield* this._parseAddChatItemAction(action.addChatItemAction?.item, offset);
                 } else if (action.addLiveChatTickerItemAction?.item) {
                     yield* this._parseAddLiveChatTickerItemAction(action.addLiveChatTickerItemAction.item, offset);
+                } else {
+                    throw new Error('Unknown chat action: ' + JSON.stringify(action));
                 }
             }
         }
@@ -403,6 +405,8 @@
             } else if (item.liveChatPaidStickerRenderer) {
                 const renderer = item.liveChatPaidStickerRenderer;
                 // TODO
+            } else {
+                throw new Error('Unknown chat item renderer: ' + JSON.stringify(item));
             }
         }
 
@@ -416,6 +420,8 @@
             } else if (item.liveChatTickerPaidStickerItemRenderer) {
                 const renderer = item.liveChatTickerPaidStickerItemRenderer;
                 // TODO
+            } else {
+                throw new Error('Unknown chat ticker renderer: ' + JSON.stringify(item));
             }
         }
 
