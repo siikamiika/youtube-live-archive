@@ -86,24 +86,36 @@
         }
 
         render(events) {
-            let first = true;
+            let firstChatItem = null;
             let lastId = null;
             // TODO use timeout queue or something
             for (const chatItem of events) {
-                const chatMessageElement = this._renderChatItem(chatItem);
-                if (first) {
-                    this._clearLogUntil(chatMessageElement.dataset.id);
-                    first = false;
+                if (!firstChatItem) {
+                    firstChatItem = chatItem;
                     lastId = this._chatElement.lastChild?.dataset?.id;
                 }
                 if (lastId) {
-                    if (lastId === chatMessageElement.dataset.id) {
+                    if (lastId === chatItem.id) {
                         lastId = null;
                     }
                     continue;
                 }
+
+                const wasScrolledBottom = this._isScrolledBottom();
+
+                const chatMessageElement = this._renderChatItem(chatItem);
                 this._chatElement.appendChild(chatMessageElement);
-                this._chatElement.scrollTop = this._chatElement.scrollHeight;
+
+                if (wasScrolledBottom) {
+                    this._clearLogUntil(firstChatItem.id);
+                    this._chatElement.scrollTop = this._chatElement.scrollHeight;
+                }
+            }
+
+            // out of sync, clear everything and start fresh
+            // happens when seeking back or too much forward
+            if (lastId) {
+                this._clearLogUntil(null);
             }
         }
 
@@ -112,6 +124,12 @@
                 if (chatMessageElement.dataset.id === messageId) { break; }
                 this._chatElement.removeChild(chatMessageElement);
             }
+        }
+
+        _isScrolledBottom() {
+            const pos = this._chatElement.scrollTop;
+            const height = this._chatElement.scrollHeight - this._chatElement.offsetHeight;
+            return pos === height;
         }
 
         _renderChatItem(chatItem) {
