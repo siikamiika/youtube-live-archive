@@ -83,6 +83,7 @@
     class LiveChatRenderer {
         constructor(chatElement) {
             this._chatElement = chatElement;
+            window.addEventListener('resize', this._onWindowResize.bind(this));
         }
 
         render(events) {
@@ -108,7 +109,7 @@
 
                 if (wasScrolledBottom) {
                     this._clearLogUntil(firstChatItem.id);
-                    this._chatElement.scrollTop = this._chatElement.scrollHeight;
+                    this._scrollToBottom();
                 }
             }
 
@@ -119,11 +120,19 @@
             }
         }
 
+        _onWindowResize() {
+            setTimeout(() => this._scrollToBottom(), 100);
+        }
+
         _clearLogUntil(messageId) {
             for (const chatMessageElement of this._chatElement.querySelectorAll('.chat-message, .chat-new-member')) {
                 if (chatMessageElement.dataset.id === messageId) { break; }
                 this._chatElement.removeChild(chatMessageElement);
             }
+        }
+
+        _scrollToBottom() {
+            this._chatElement.scrollTop = this._chatElement.scrollHeight;
         }
 
         _isScrolledBottom() {
