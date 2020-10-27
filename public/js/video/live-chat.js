@@ -332,6 +332,7 @@
     }
 
     class YoutubeLiveChatParser {
+        // TODO move to backend
         *parse(data) {
             const offset = Number(data?.replayChatItemAction?.videoOffsetTimeMsec);
             for (const action of data?.replayChatItemAction?.actions || []) {
