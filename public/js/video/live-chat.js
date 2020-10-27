@@ -335,65 +335,87 @@
         *parse(data) {
             const offset = Number(data?.replayChatItemAction?.videoOffsetTimeMsec);
             for (const action of data?.replayChatItemAction?.actions || []) {
-                // TODO addLiveChatTickerItemAction
-                const chatAction = action?.addChatItemAction?.item;
-                if (!chatAction) { continue; }
+                if (!action) { continue; }
 
-                const transformMessageRun = (run) => {
-                    if (run.text) {
-                        return {text: run.text};
-                    }
+                if (action.addChatItemAction?.item) {
+                    yield* this._parseAddChatItemAction(action.addChatItemAction?.item, offset);
+                } else if (action.addLiveChatTickerItemAction?.item) {
+                    yield* this._parseAddLiveChatTickerItemAction(action.addLiveChatTickerItemAction.item, offset);
+                }
+            }
+        }
 
-                    if (run.emoji) {
-                        return {
-                            emoji: {
-                                url: '/storage/images/live_chat_emoji/' + app.channelId + '/' + run.emoji.emojiId.split('/')[1] + '.png',
-                                name: run.emoji.shortcuts[0],
-                            }
-                        };
-                    }
-                };
+        *_parseAddChatItemAction(item, offset) {
+            const transformMessageRun = (run) => {
+                if (run.text) {
+                    return {text: run.text};
+                }
 
-                if (chatAction.liveChatTextMessageRenderer) {
-                    const renderer = chatAction.liveChatTextMessageRenderer;
-                    yield {
-                        type: 'CHAT_MESSAGE_NORMAL',
-                        id: renderer.id,
-                        authorChannelId: renderer.authorExternalChannelId,
-                        authorName: renderer.authorName.simpleText,
-                        messageParts: renderer.message ? renderer.message.runs.map(transformMessageRun) : [],
-                        badges: this._parseBadges(renderer),
-                        offset,
-                    };
-                } else if (chatAction.liveChatPaidMessageRenderer) {
-                    const renderer = chatAction.liveChatPaidMessageRenderer;
-                    yield {
-                        type: 'CHAT_MESSAGE_PAID',
-                        id: renderer.id,
-                        authorChannelId: renderer.authorExternalChannelId,
-                        authorName: renderer.authorName.simpleText,
-                        messageParts: renderer.message ? renderer.message.runs.map(transformMessageRun) : [],
-                        paidAmount: renderer.purchaseAmountText.simpleText,
-                        headerBgColor: renderer.headerBackgroundColor,
-                        headerFgColor: renderer.headerTextColor,
-                        bodyBgColor: renderer.bodyBackgroundColor,
-                        bodyFgColor: renderer.bodyTextColor,
-                        authorNameColor: renderer.authorNameTextColor,
-                        badges: this._parseBadges(renderer),
-                        offset,
-                    };
-                } else if (chatAction.liveChatMembershipItemRenderer) {
-                    const renderer = chatAction.liveChatMembershipItemRenderer;
-                    yield {
-                        type: 'CHAT_NEW_MEMBER',
-                        id: renderer.id,
-                        authorChannelId: renderer.authorExternalChannelId,
-                        authorName: renderer.authorName.simpleText,
-                        messageParts: renderer.headerSubtext ? renderer.headerSubtext.runs.map(transformMessageRun) : [],
-                        badges: this._parseBadges(renderer),
-                        offset,
+                if (run.emoji) {
+                    return {
+                        emoji: {
+                            url: '/storage/images/live_chat_emoji/' + app.channelId + '/' + run.emoji.emojiId.split('/')[1] + '.png',
+                            name: run.emoji.shortcuts[0],
+                        }
                     };
                 }
+            };
+
+            if (item.liveChatTextMessageRenderer) {
+                const renderer = item.liveChatTextMessageRenderer;
+                yield {
+                    type: 'CHAT_MESSAGE_NORMAL',
+                    id: renderer.id,
+                    authorChannelId: renderer.authorExternalChannelId,
+                    authorName: renderer.authorName.simpleText,
+                    messageParts: renderer.message ? renderer.message.runs.map(transformMessageRun) : [],
+                    badges: this._parseBadges(renderer),
+                    offset,
+                };
+            } else if (item.liveChatPaidMessageRenderer) {
+                const renderer = item.liveChatPaidMessageRenderer;
+                yield {
+                    type: 'CHAT_MESSAGE_PAID',
+                    id: renderer.id,
+                    authorChannelId: renderer.authorExternalChannelId,
+                    authorName: renderer.authorName.simpleText,
+                    messageParts: renderer.message ? renderer.message.runs.map(transformMessageRun) : [],
+                    paidAmount: renderer.purchaseAmountText.simpleText,
+                    headerBgColor: renderer.headerBackgroundColor,
+                    headerFgColor: renderer.headerTextColor,
+                    bodyBgColor: renderer.bodyBackgroundColor,
+                    bodyFgColor: renderer.bodyTextColor,
+                    authorNameColor: renderer.authorNameTextColor,
+                    badges: this._parseBadges(renderer),
+                    offset,
+                };
+            } else if (item.liveChatMembershipItemRenderer) {
+                const renderer = item.liveChatMembershipItemRenderer;
+                yield {
+                    type: 'CHAT_NEW_MEMBER',
+                    id: renderer.id,
+                    authorChannelId: renderer.authorExternalChannelId,
+                    authorName: renderer.authorName.simpleText,
+                    messageParts: renderer.headerSubtext ? renderer.headerSubtext.runs.map(transformMessageRun) : [],
+                    badges: this._parseBadges(renderer),
+                    offset,
+                };
+            } else if (item.liveChatPaidStickerRenderer) {
+                const renderer = item.liveChatPaidStickerRenderer;
+                // TODO
+            }
+        }
+
+        *_parseAddLiveChatTickerItemAction(item, offset) {
+            if (item.liveChatTickerPaidMessageItemRenderer) {
+                const renderer = item.liveChatTickerPaidMessageItemRenderer;
+                // TODO
+            } else if (item.liveChatTickerSponsorItemRenderer) {
+                const renderer = item.liveChatTickerSponsorItemRenderer;
+                // TODO
+            } else if (item.liveChatTickerPaidStickerItemRenderer) {
+                const renderer = item.liveChatTickerPaidStickerItemRenderer;
+                // TODO
             }
         }
 
@@ -466,6 +488,7 @@
             const currentTimeMs = this._videoElement.currentTime * 1000;
             const chatEvents = [];
             for await (const chatItem of this._getChatItems(currentTimeMs)) {
+                // TODO cache this too
                 chatEvents.push(...this._parser.parse(chatItem));
             }
             this._renderer.render(chatEvents);
