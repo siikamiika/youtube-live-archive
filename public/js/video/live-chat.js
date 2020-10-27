@@ -129,7 +129,7 @@
         _isScrolledBottom() {
             const pos = this._chatElement.scrollTop;
             const height = this._chatElement.scrollHeight - this._chatElement.offsetHeight;
-            return pos === height;
+            return height - pos < 50;
         }
 
         _renderChatItem(chatItem) {
