@@ -28,7 +28,9 @@
                     </div>
 
                     <div id="live-chat">
-                        <div id="live-chat-tickers"></div>
+                        <div class="live-chat-ticker-container">
+                            <div id="live-chat-tickers"></div>
+                        </div>
                         <div id="live-chat-messages"></div>
                     </div>
                 </div>
