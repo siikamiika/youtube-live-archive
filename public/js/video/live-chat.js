@@ -495,8 +495,7 @@
             const currentTimeMs = this._videoElement.currentTime * 1000;
             const chatEvents = [];
             for await (const chatItem of this._getChatItems(currentTimeMs)) {
-                // TODO cache this too
-                chatEvents.push(...this._parser.parse(chatItem));
+                chatEvents.push(chatItem);
             }
             this._renderer.render(chatEvents);
         }
@@ -535,13 +534,13 @@
         }
 
         async *_getChatItems(time, nPrevious=100) {
-            if (this._cache.length === 0 || this._chatItemOffset(this._cache[this._cache.length - 1]) < time) {
+            if (this._cache.length === 0 || this._cache[this._cache.length - 1].offset < time) {
                 for (;;) {
                     const {value, done} = await this._lineIterator.next();
                     if (done) { break; }
                     const chatItem = JSON.parse(value);
-                    this._cache.push(chatItem);
-                    if (this._chatItemOffset(chatItem) > time) { break; }
+                    this._cache.push(...this._parser.parse(chatItem));
+                    if (chatItem.offset > time) { break; }
                 }
             }
 
@@ -549,7 +548,7 @@
             let hi = this._cache.length - 1;
             while (lo !== hi) {
                 const mid = Math.ceil((lo + hi) / 2);
-                const offset = this._chatItemOffset(this._cache[mid]);
+                const offset = this._cache[mid].offset;
                 if (offset > time) {
                     hi = mid - 1;
                 } else {
@@ -566,10 +565,6 @@
             for (let i = chatItems.length - 1; i >= 0; i--) {
                 yield chatItems[i];
             }
-        }
-
-        _chatItemOffset(chatItem) {
-            return Number(chatItem.replayChatItemAction.videoOffsetTimeMsec);
         }
     }
 
