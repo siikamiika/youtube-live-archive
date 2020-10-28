@@ -147,8 +147,15 @@
 
 /* Chat tickers */
 
-.chat-ticker {
+.chat-ticker-wrapper {
     display: inline-block;
+    margin-right: 4px;
+    padding: 1px;
+}
+
+.chat-ticker {
+    padding: 4px;
+    border-radius: 999px;
     /* TODO */
 }
 

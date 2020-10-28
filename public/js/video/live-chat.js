@@ -330,15 +330,19 @@
                 // TODO chatItem.expandedMessage
                 return buildDom({
                     E: 'div',
-                    className: 'chat-ticker chat-ticker-message-paid',
-                    // TODO chatItem.startBgColor, chatItem.endBgColor, chatItem.offset, chatItem.duration: progress bar
-                    style: {backgroundColor: this._convertArgbIntRgbaCss(chatItem.startBgColor)},
-                    dataset: {id: chatItem.id},
+                    className: 'chat-ticker-wrapper',
                     C: {
-                        E: 'span',
-                        className: 'chat-ticker-paid-amount',
-                        style: {color: this._convertArgbIntRgbaCss(chatItem.amountColor)},
-                        C: chatItem.paidAmount
+                        E: 'div',
+                        className: 'chat-ticker chat-ticker-message-paid',
+                        // TODO chatItem.startBgColor, chatItem.endBgColor, chatItem.offset, chatItem.duration: progress bar
+                        style: {backgroundColor: this._convertArgbIntRgbaCss(chatItem.startBgColor)},
+                        dataset: {id: chatItem.id},
+                        C: {
+                            E: 'span',
+                            className: 'chat-ticker-paid-amount',
+                            style: {color: this._convertArgbIntRgbaCss(chatItem.amountColor)},
+                            C: chatItem.paidAmount
+                        }
                     }
                 });
             }
