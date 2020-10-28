@@ -81,12 +81,13 @@
     }
 
     class LiveChatRenderer {
-        constructor(chatElement) {
-            this._chatElement = chatElement;
+        constructor(chatContainer) {
+            this._chatElement = chatContainer.querySelector('#live-chat-messages');
+            this._tickerElement = chatContainer.querySelector('#live-chat-tickers');
             window.addEventListener('resize', this._onWindowResize.bind(this));
         }
 
-        render(events) {
+        renderMessages(events) {
             let firstChatItem = null;
             let lastId = null;
             // TODO use timeout queue or something
@@ -105,6 +106,7 @@
                 const wasScrolledBottom = this._isScrolledBottom();
 
                 const chatMessageElement = this._renderChatItem(chatItem);
+                if (!chatMessageElement) { continue; }
                 this._chatElement.appendChild(chatMessageElement);
 
                 if (wasScrolledBottom) {
@@ -117,6 +119,20 @@
             // happens when seeking back or too much forward
             if (lastId) {
                 this._clearLogUntil(null);
+            }
+        }
+
+        // TODO
+        renderTickers(events) {
+            // TODO sort by remaining time and avoid replacing elements every time
+            while (this._tickerElement.firstChild) {
+                this._tickerElement.removeChild(this._tickerElement.lastChild);
+            }
+
+            for (const chatItem of events) {
+                const tickerElement = this._renderTicker(chatItem);
+                if (!tickerElement) { continue; }
+                this._tickerElement.appendChild(tickerElement);
             }
         }
 
@@ -309,6 +325,27 @@
             }
         }
 
+        _renderTicker(chatItem) {
+            if (chatItem.type === 'CHAT_TICKER_MESSAGE_PAID') {
+                // TODO chatItem.expandedMessage
+                return buildDom({
+                    E: 'div',
+                    className: 'chat-ticker chat-ticker-message-paid',
+                    // TODO chatItem.startBgColor, chatItem.endBgColor, chatItem.offset, chatItem.duration: progress bar
+                    style: {backgroundColor: this._convertArgbIntRgbaCss(chatItem.startBgColor)},
+                    dataset: {id: chatItem.id},
+                    C: {
+                        E: 'span',
+                        className: 'chat-ticker-paid-amount',
+                        style: {color: this._convertArgbIntRgbaCss(chatItem.amountColor)},
+                        C: chatItem.paidAmount
+                    }
+                });
+            }
+
+            // TODO other types
+        }
+
         _convertArgbIntRgbaCss(color) {
             const b = color & 0xff;
             const g = (color >> 8) & 0xff;
@@ -406,6 +443,9 @@
             } else if (item.liveChatPaidStickerRenderer) {
                 const renderer = item.liveChatPaidStickerRenderer;
                 // TODO
+            } else if (item.liveChatViewerEngagementMessageRenderer) {
+                // not meaningful for archival
+                return;
             } else {
                 throw new Error('Unknown chat item renderer: ' + JSON.stringify(item));
             }
@@ -414,7 +454,20 @@
         *_parseAddLiveChatTickerItemAction(item, offset) {
             if (item.liveChatTickerPaidMessageItemRenderer) {
                 const renderer = item.liveChatTickerPaidMessageItemRenderer;
-                // TODO
+                if (renderer.durationSec !== renderer.fullDurationSec) {
+                    throw new Error('Unexpected duration mismatch');
+                }
+                yield {
+                    type: 'CHAT_TICKER_MESSAGE_PAID',
+                    id: renderer.id,
+                    paidAmount: renderer.amount.simpleText,
+                    amountColor: renderer.amountTextColor,
+                    startBgColor: renderer.startBackgroundColor,
+                    endBgColor: renderer.endBackgroundColor,
+                    duration: renderer.fullDurationSec,
+                    expandedMessage: this._parseAddChatItemAction(renderer.showItemEndpoint.showLiveChatItemEndpoint.renderer, offset).next()?.value,
+                    offset,
+                };
             } else if (item.liveChatTickerSponsorItemRenderer) {
                 const renderer = item.liveChatTickerSponsorItemRenderer;
                 // TODO
@@ -482,22 +535,21 @@
     }
 
     class LiveChat {
-        constructor(url, videoElement, chatElement) {
+        constructor(url, videoElement, chatContainer) {
             this._url = url;
             this._videoElement = videoElement;
             this._parser = new YoutubeLiveChatParser();
-            this._renderer = new LiveChatRenderer(chatElement);
-            this._cache = [];
+            this._renderer = new LiveChatRenderer(chatContainer);
+            this._messageCache = [];
+            this._tickerCache = [];
             this._lineIterator = this._iterateLines();
         }
 
         async updateLiveChat() {
             const currentTimeMs = this._videoElement.currentTime * 1000;
-            const chatEvents = [];
-            for await (const chatItem of this._getChatItems(currentTimeMs)) {
-                chatEvents.push(chatItem);
-            }
-            this._renderer.render(chatEvents);
+            await this._fetchNewChatItems(currentTimeMs);
+            this._renderer.renderMessages(this._getChatMessages(currentTimeMs));
+            this._renderer.renderTickers(this._getChatTickers(currentTimeMs));
         }
 
         // https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read
@@ -533,22 +585,40 @@
             }
         }
 
-        async *_getChatItems(time, nPrevious=100) {
-            if (this._cache.length === 0 || this._cache[this._cache.length - 1].offset < time) {
+        async _fetchNewChatItems(time) {
+            if (this._messageCache.length === 0 || this._messageCache[this._messageCache.length - 1].offset < time) {
                 for (;;) {
                     const {value, done} = await this._lineIterator.next();
                     if (done) { break; }
-                    const chatItem = JSON.parse(value);
-                    this._cache.push(...this._parser.parse(chatItem));
-                    if (chatItem.offset > time) { break; }
+                    let lastChatItem = null;
+                    for (const chatItem of this._parser.parse(JSON.parse(value))) {
+                        this._cacheChatItem(chatItem);
+                        lastChatItem = chatItem;
+                    }
+                    if (lastChatItem && lastChatItem.offset > time) { break; }
                 }
             }
+        }
 
+        _cacheChatItem(chatItem) {
+            switch (chatItem.type) {
+                case 'CHAT_MESSAGE_NORMAL':
+                case 'CHAT_MESSAGE_PAID':
+                case 'CHAT_NEW_MEMBER':
+                    this._messageCache.push(chatItem);
+                    break;
+                case 'CHAT_TICKER_MESSAGE_PAID':
+                    this._tickerCache.push(chatItem);
+                    break;
+            }
+        }
+
+        *_getChatMessages(time, nPrevious=100) {
             let lo = 0;
-            let hi = this._cache.length - 1;
+            let hi = this._messageCache.length - 1;
             while (lo !== hi) {
                 const mid = Math.ceil((lo + hi) / 2);
-                const offset = this._cache[mid].offset;
+                const offset = this._messageCache[mid].offset;
                 if (offset > time) {
                     hi = mid - 1;
                 } else {
@@ -559,12 +629,22 @@
             const chatItems = [];
             let index = lo;
             while (chatItems.length < nPrevious && index >= 0) {
-                chatItems.push(this._cache[index]);
+                chatItems.push(this._messageCache[index]);
                 index--;
             }
             for (let i = chatItems.length - 1; i >= 0; i--) {
                 yield chatItems[i];
             }
+        }
+
+        *_getChatTickers(time) {
+            // TODO use binary search (but mind the time windows)
+            for (const chatTickerItem of this._tickerCache) {
+                if (chatTickerItem.offset > time) { break; }
+                if (chatTickerItem.offset + chatTickerItem.duration * 1000 < time) { continue; }
+                yield chatTickerItem;
+            }
+
         }
     }
 
@@ -573,9 +653,9 @@
     }
 
     const videoElement = document.querySelector('#video');
-    const liveChatElement = document.querySelector('#live-chat');
+    const liveChatContainer = document.querySelector('#live-chat');
 
-    const liveChat = new LiveChat(app.liveChatResource, videoElement, liveChatElement);
+    const liveChat = new LiveChat(app.liveChatResource, videoElement, liveChatContainer);
 
     let liveChatIntervalId = null;
 

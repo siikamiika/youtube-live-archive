@@ -31,9 +31,18 @@
 
 #live-chat {
     flex: 1 1 1000px;
+    margin: 2px;
+}
+
+#live-chat-messages {
     overflow-y: scroll;
     word-break: break-word;
-    margin: 2px;
+    height: 100%;
+}
+
+#live-chat-tickers {
+    overflow-x: scroll;
+    white-space: nowrap;
 }
 
 .chat-message {
@@ -136,6 +145,21 @@
     margin: auto;
 }
 
+/* Chat tickers */
+
+.chat-ticker {
+    display: inline-block;
+    /* TODO */
+}
+
+.chat-ticker.chat-ticker-message-paid {
+    /* TODO */
+}
+
+.chat-ticker-paid-amount {
+    /* TODO */
+}
+
 /* Responsiveness */
 
 @media only screen and (max-width: 1000px) {
@@ -145,6 +169,7 @@
 
     #live-chat {
         height: 50vh;
+        max-width: 100%;
     }
 }
 

@@ -27,7 +27,10 @@
                         @endif
                     </div>
 
-                    <div id="live-chat"></div>
+                    <div id="live-chat">
+                        <div id="live-chat-tickers"></div>
+                        <div id="live-chat-messages"></div>
+                    </div>
                 </div>
             @elseif ($video->archived)
                 {{-- TODO have a dedicated status for this somewhere. Also show progress --}}
