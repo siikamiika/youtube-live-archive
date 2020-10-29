@@ -81,9 +81,10 @@
     }
 
     class LiveChatRenderer {
-        constructor(chatContainer) {
+        constructor(chatContainer, videoElement) {
             this._chatElement = chatContainer.querySelector('#live-chat-messages');
             this._tickerElement = chatContainer.querySelector('#live-chat-tickers');
+            this._videoElement = videoElement;
             window.addEventListener('resize', this._onWindowResize.bind(this));
         }
 
@@ -137,6 +138,7 @@
         }
 
         _onWindowResize() {
+            // TODO stop timer if another resize event is fired before it completes
             setTimeout(() => this._scrollToBottom(), 100);
         }
 
@@ -326,6 +328,9 @@
         }
 
         _renderTicker(chatItem) {
+            const currentTimeMs = this._videoElement.currentTime * 1000;
+            const durationMs = chatItem.duration * 1000;
+            const progress = (currentTimeMs - chatItem.offset) / durationMs;
             if (chatItem.type === 'CHAT_TICKER_MESSAGE_PAID') {
                 // TODO chatItem.expandedMessage
                 return buildDom({
@@ -333,15 +338,25 @@
                     className: 'chat-ticker-wrapper',
                     C: {
                         E: 'div',
-                        className: 'chat-ticker chat-ticker-message-paid',
-                        // TODO chatItem.startBgColor, chatItem.endBgColor, chatItem.offset, chatItem.duration: progress bar
-                        style: {backgroundColor: this._convertArgbIntRgbaCss(chatItem.startBgColor)},
-                        dataset: {id: chatItem.id},
+                        className: 'chat-ticker-progress',
+                        style: {backgroundColor: this._convertArgbIntRgbaCss(chatItem.endBgColor)},
                         C: {
-                            E: 'span',
-                            className: 'chat-ticker-paid-amount',
-                            style: {color: this._convertArgbIntRgbaCss(chatItem.amountColor)},
-                            C: chatItem.paidAmount
+                            E: 'div',
+                            className: 'chat-ticker-progress-bar',
+                            style: {
+                                backgroundColor: this._convertArgbIntRgbaCss(chatItem.startBgColor),
+                                width: `${(1 - progress) * 100}%`,
+                            },
+                            C: {
+                                E: 'div',
+                                className: 'chat-ticker chat-ticker-message-paid',
+                                C: {
+                                    E: 'span',
+                                    className: 'chat-ticker-paid-amount',
+                                    style: {color: this._convertArgbIntRgbaCss(chatItem.amountColor)},
+                                    C: chatItem.paidAmount
+                                }
+                            }
                         }
                     }
                 });
@@ -543,7 +558,7 @@
             this._url = url;
             this._videoElement = videoElement;
             this._parser = new YoutubeLiveChatParser();
-            this._renderer = new LiveChatRenderer(chatContainer);
+            this._renderer = new LiveChatRenderer(chatContainer, videoElement);
             this._messageCache = [];
             this._tickerCache = [];
             this._lineIterator = this._iterateLines();
