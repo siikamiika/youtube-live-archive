@@ -123,11 +123,29 @@
             }
         }
 
-        // TODO
         renderTickers(events) {
-            // TODO sort by remaining time and avoid replacing elements every time
-            while (this._tickerElement.firstChild) {
-                this._tickerElement.removeChild(this._tickerElement.lastChild);
+            const tickerMap = {};
+            for (const chatItem of events) {
+                tickerMap[chatItem.id] = {chatItem, ticker: null};
+            }
+
+            for (const ticker of this._tickerElement.querySelectorAll('.chat-ticker-wrapper')) {
+                const id = ticker.dataset.id;
+                if (!tickerMap[id]) {
+                    ticker.remove();
+                    continue;
+                }
+                tickerMap[id].ticker = ticker;
+                this._updateTickerProgress(ticker, tickerMap[id].chatItem);
+            }
+
+            for (const [_, {chatItem, ticker}] of Object.entries(tickerMap)) {
+                if (ticker) { continue; }
+
+                const tickerElement = this._renderTicker(chatItem);
+                if (!tickerElement) { continue; }
+                this._updateTickerProgress(tickerElement, chatItem);
+                this._insertTicker(tickerElement);
             }
 
             for (const chatItem of events) {
@@ -328,41 +346,83 @@
         }
 
         _renderTicker(chatItem) {
-            const currentTimeMs = this._videoElement.currentTime * 1000;
-            const durationMs = chatItem.duration * 1000;
-            const progress = (currentTimeMs - chatItem.offset) / durationMs;
             if (chatItem.type === 'CHAT_TICKER_MESSAGE_PAID') {
-                // TODO chatItem.expandedMessage
                 return buildDom({
                     E: 'div',
                     className: 'chat-ticker-wrapper',
-                    C: {
-                        E: 'div',
-                        className: 'chat-ticker-progress',
-                        style: {backgroundColor: this._convertArgbIntRgbaCss(chatItem.endBgColor)},
-                        C: {
+                    dataset: {id: chatItem.id},
+                    C: [
+                        {
                             E: 'div',
-                            className: 'chat-ticker-progress-bar',
-                            style: {
-                                backgroundColor: this._convertArgbIntRgbaCss(chatItem.startBgColor),
-                                width: `${(1 - progress) * 100}%`,
-                            },
+                            className: 'chat-ticker-progress',
+                            style: {backgroundColor: this._convertArgbIntRgbaCss(chatItem.endBgColor)},
+                            onclick: this._onTickerProgressClick.bind(this),
                             C: {
                                 E: 'div',
-                                className: 'chat-ticker chat-ticker-message-paid',
+                                className: 'chat-ticker-progress-bar',
+                                style: {backgroundColor: this._convertArgbIntRgbaCss(chatItem.startBgColor)},
                                 C: {
-                                    E: 'span',
-                                    className: 'chat-ticker-paid-amount',
-                                    style: {color: this._convertArgbIntRgbaCss(chatItem.amountColor)},
-                                    C: chatItem.paidAmount
+                                    E: 'div',
+                                    className: 'chat-ticker chat-ticker-message-paid',
+                                    C: {
+                                        E: 'span',
+                                        className: 'chat-ticker-paid-amount',
+                                        style: {color: this._convertArgbIntRgbaCss(chatItem.amountColor)},
+                                        C: chatItem.paidAmount
+                                    }
                                 }
                             }
+                        },
+                        {
+                            E: 'div',
+                            style: {display: 'none'},
+                            className: 'chat-ticker-expanded-message-wrapper',
+                            C: this._renderChatItem(chatItem.expandedMessage),
                         }
-                    }
+                    ]
                 });
             }
 
             // TODO other types
+        }
+
+        _insertTicker(ticker) {
+            for (const otherTicker of this._tickerElement.querySelectorAll('.chat-ticker-wrapper')) {
+                if (Number(otherTicker.dataset.duration) > Number(ticker.dataset.duration)) { continue; }
+                otherTicker.before(ticker);
+                return;
+            }
+            this._tickerElement.appendChild(ticker);
+        }
+
+        _updateTickerProgress(ticker, chatItem) {
+            const currentTimeMs = this._videoElement.currentTime * 1000;
+            const durationMs = chatItem.duration * 1000;
+
+            ticker.dataset.duration = durationMs - (currentTimeMs - chatItem.offset);
+
+            const progress = (currentTimeMs - chatItem.offset) / durationMs;
+            ticker.querySelector('.chat-ticker-progress-bar').style.width = `${(1 - progress) * 100}%`;
+        }
+
+        _onTickerProgressClick(e) {
+            const expandedMessageWrapper = e.currentTarget
+                .closest('.chat-ticker-wrapper')
+                .querySelector('.chat-ticker-expanded-message-wrapper');
+
+            const prevValue = expandedMessageWrapper.style.display;
+            if (prevValue === 'none') {
+                this._closeTickerExpandedMessages();
+            }
+            expandedMessageWrapper.style.display = prevValue === 'none' ? 'block' : 'none';
+        }
+
+        _closeTickerExpandedMessages() {
+            const expandedMessageElements = this._tickerElement
+                .querySelectorAll('.chat-ticker-expanded-message-wrapper');
+            for (const expandedMessageElement of expandedMessageElements) {
+                expandedMessageElement.style.display = 'none';
+            }
         }
 
         _convertArgbIntRgbaCss(color) {

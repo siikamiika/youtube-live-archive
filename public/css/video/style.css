@@ -33,6 +33,7 @@
 #live-chat {
     flex: 1 1 1000px;
     margin: 2px;
+    position: relative;
     /* also has conditional styles depending on width */
 }
 
@@ -176,6 +177,15 @@
 
 .chat-ticker-paid-amount {
     /* TODO */
+}
+
+.chat-ticker-expanded-message-wrapper {
+    position: absolute;
+    left: 5%;
+    width: 90%;
+    z-index: 10;
+    top: calc(32px + 5%);
+    white-space: normal;
 }
 
 /* Responsiveness */
