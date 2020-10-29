@@ -525,6 +525,9 @@
             } else if (item.liveChatViewerEngagementMessageRenderer) {
                 // not meaningful for archival
                 return;
+            } else if (item.liveChatPlaceholderItemRenderer) {
+                // not meaningful for archival
+                return;
             } else {
                 throw new Error('Unknown chat item renderer: ' + JSON.stringify(item));
             }
