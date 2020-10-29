@@ -169,6 +169,8 @@
 
 .chat-ticker {
     padding: 4px;
+    user-select: none;
+    cursor: pointer;
 }
 
 .chat-ticker.chat-ticker-message-paid {
@@ -184,7 +186,7 @@
     left: 5%;
     width: 90%;
     z-index: 10;
-    top: calc(32px + 5%);
+    top: 32px;
     white-space: normal;
 }
 
