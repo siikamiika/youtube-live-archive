@@ -147,12 +147,6 @@
                 this._updateTickerProgress(tickerElement, chatItem);
                 this._insertTicker(tickerElement);
             }
-
-            for (const chatItem of events) {
-                const tickerElement = this._renderTicker(chatItem);
-                if (!tickerElement) { continue; }
-                this._tickerElement.appendChild(tickerElement);
-            }
         }
 
         _onWindowResize() {
