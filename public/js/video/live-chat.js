@@ -383,6 +383,43 @@
                 });
             }
 
+            if (chatItem.type === 'CHAT_TICKER_NEW_MEMBER') {
+                return buildDom({
+                    E: 'div',
+                    className: 'chat-ticker-wrapper',
+                    dataset: {id: chatItem.id},
+                    C: [
+                        {
+                            E: 'div',
+                            className: 'chat-ticker-progress',
+                            style: {backgroundColor: this._convertArgbIntRgbaCss(chatItem.endBgColor)},
+                            onclick: this._onTickerProgressClick.bind(this),
+                            C: {
+                                E: 'div',
+                                className: 'chat-ticker-progress-bar',
+                                style: {backgroundColor: this._convertArgbIntRgbaCss(chatItem.startBgColor)},
+                                C: {
+                                    E: 'div',
+                                    className: 'chat-ticker chat-ticker-new-member',
+                                    C: {
+                                        E: 'span',
+                                        className: 'chat-ticker-member-text',
+                                        style: {color: this._convertArgbIntRgbaCss(chatItem.textColor)},
+                                        C: chatItem.textParts.map(this._renderMessagePart.bind(this))
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            E: 'div',
+                            style: {display: 'none'},
+                            className: 'chat-ticker-expanded-message-wrapper',
+                            C: this._renderChatItem(chatItem.expandedMessage),
+                        }
+                    ]
+                });
+            }
+
             // TODO other types
         }
 
@@ -465,21 +502,6 @@
         }
 
         *_parseAddChatItemAction(item, offset) {
-            const transformMessageRun = (run) => {
-                if (run.text) {
-                    return {text: run.text};
-                }
-
-                if (run.emoji) {
-                    return {
-                        emoji: {
-                            url: '/storage/images/live_chat_emoji/' + app.channelId + '/' + run.emoji.emojiId.split('/')[1] + '.png',
-                            name: run.emoji.shortcuts[0],
-                        }
-                    };
-                }
-            };
-
             if (item.liveChatTextMessageRenderer) {
                 const renderer = item.liveChatTextMessageRenderer;
                 yield {
@@ -487,7 +509,7 @@
                     id: renderer.id,
                     authorChannelId: renderer.authorExternalChannelId,
                     authorName: renderer.authorName.simpleText,
-                    messageParts: renderer.message ? renderer.message.runs.map(transformMessageRun) : [],
+                    messageParts: renderer.message ? renderer.message.runs.map(this._transformMessageRun.bind(this)) : [],
                     badges: this._parseBadges(renderer),
                     offset,
                 };
@@ -498,7 +520,7 @@
                     id: renderer.id,
                     authorChannelId: renderer.authorExternalChannelId,
                     authorName: renderer.authorName.simpleText,
-                    messageParts: renderer.message ? renderer.message.runs.map(transformMessageRun) : [],
+                    messageParts: renderer.message ? renderer.message.runs.map(this._transformMessageRun.bind(this)) : [],
                     paidAmount: renderer.purchaseAmountText.simpleText,
                     headerBgColor: renderer.headerBackgroundColor,
                     headerFgColor: renderer.headerTextColor,
@@ -515,7 +537,7 @@
                     id: renderer.id,
                     authorChannelId: renderer.authorExternalChannelId,
                     authorName: renderer.authorName.simpleText,
-                    messageParts: renderer.headerSubtext ? renderer.headerSubtext.runs.map(transformMessageRun) : [],
+                    messageParts: renderer.headerSubtext ? renderer.headerSubtext.runs.map(this._transformMessageRun.bind(this)) : [],
                     badges: this._parseBadges(renderer),
                     offset,
                 };
@@ -552,12 +574,37 @@
                 };
             } else if (item.liveChatTickerSponsorItemRenderer) {
                 const renderer = item.liveChatTickerSponsorItemRenderer;
-                // TODO
+                yield {
+                    type: 'CHAT_TICKER_NEW_MEMBER',
+                    id: renderer.id,
+                    textParts: renderer.detailText ? renderer.detailText.runs.map(this._transformMessageRun.bind(this)) : [],
+                    textColor: renderer.detailTextColor,
+                    startBgColor: renderer.startBackgroundColor,
+                    endBgColor: renderer.endBackgroundColor,
+                    duration: renderer.fullDurationSec,
+                    expandedMessage: this._parseAddChatItemAction(renderer.showItemEndpoint.showLiveChatItemEndpoint.renderer, offset).next()?.value,
+                    offset,
+                };
             } else if (item.liveChatTickerPaidStickerItemRenderer) {
                 const renderer = item.liveChatTickerPaidStickerItemRenderer;
                 // TODO
             } else {
                 throw new Error('Unknown chat ticker renderer: ' + JSON.stringify(item));
+            }
+        }
+
+        _transformMessageRun(run) {
+            if (run.text) {
+                return {text: run.text};
+            }
+
+            if (run.emoji) {
+                return {
+                    emoji: {
+                        url: '/storage/images/live_chat_emoji/' + app.channelId + '/' + run.emoji.emojiId.split('/')[1] + '.png',
+                        name: run.emoji.shortcuts[0],
+                    }
+                };
             }
         }
 
@@ -690,6 +737,7 @@
                     this._messageCache.push(chatItem);
                     break;
                 case 'CHAT_TICKER_MESSAGE_PAID':
+                case 'CHAT_TICKER_NEW_MEMBER':
                     this._tickerCache.push(chatItem);
                     break;
             }
