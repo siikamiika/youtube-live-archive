@@ -85,7 +85,11 @@
             this._chatElement = chatContainer.querySelector('#live-chat-messages');
             this._tickerElement = chatContainer.querySelector('#live-chat-tickers');
             this._videoElement = videoElement;
+
+            this._wasScrolledBottom = true;
+            this._resizePending = false;
             window.addEventListener('resize', this._onWindowResize.bind(this));
+            this._chatElement.addEventListener('scroll', this._onChatScroll.bind(this));
         }
 
         renderMessages(events) {
@@ -104,13 +108,11 @@
                     continue;
                 }
 
-                const wasScrolledBottom = this._isScrolledBottom();
-
                 const chatMessageElement = this._renderChatItem(chatItem);
                 if (!chatMessageElement) { continue; }
                 this._chatElement.appendChild(chatMessageElement);
 
-                if (wasScrolledBottom) {
+                if (this._wasScrolledBottom) {
                     this._clearLogUntil(firstChatItem.id);
                     this._scrollToBottom();
                 }
@@ -150,8 +152,17 @@
         }
 
         _onWindowResize() {
-            // TODO stop timer if another resize event is fired before it completes
-            setTimeout(() => this._scrollToBottom(), 100);
+            if (this._wasScrolledBottom && !this._resizePending) {
+                this._resizePending = true;
+                setTimeout(() => {
+                    this._resizePending = false;
+                    this._scrollToBottom();
+                }, 500);
+            }
+        }
+
+        _onChatScroll() {
+            this._wasScrolledBottom = this._isScrolledBottom();
         }
 
         _clearLogUntil(messageId) {
