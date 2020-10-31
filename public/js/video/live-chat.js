@@ -694,7 +694,7 @@
             }
         }
 
-        // should always have more than 1 element
+        // should always have at least 1 element
         _findIndex(array, value) {
             let lo = 0;
             let hi = array.length - 1;
