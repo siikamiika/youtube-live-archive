@@ -344,7 +344,7 @@
                 return buildDom({
                     E: 'div',
                     className: 'chat-ticker-wrapper',
-                    dataset: {id: chatItem.id},
+                    dataset: {id: chatItem.id, offset: chatItem.offset},
                     C: [
                         {
                             E: 'div',
@@ -381,7 +381,7 @@
                 return buildDom({
                     E: 'div',
                     className: 'chat-ticker-wrapper',
-                    dataset: {id: chatItem.id},
+                    dataset: {id: chatItem.id, offset: chatItem.offset},
                     C: [
                         {
                             E: 'div',
@@ -419,7 +419,7 @@
 
         _insertTicker(ticker) {
             for (const otherTicker of this._tickerElement.querySelectorAll('.chat-ticker-wrapper')) {
-                if (Number(otherTicker.dataset.duration) > Number(ticker.dataset.duration)) { continue; }
+                if (Number(otherTicker.dataset.offset) > Number(ticker.dataset.offset)) { continue; }
                 otherTicker.before(ticker);
                 return;
             }
@@ -429,9 +429,6 @@
         _updateTickerProgress(ticker, chatItem) {
             const currentTimeMs = this._videoElement.currentTime * 1000;
             const durationMs = chatItem.duration * 1000;
-
-            ticker.dataset.duration = durationMs - (currentTimeMs - chatItem.offset);
-
             const progress = (currentTimeMs - chatItem.offset) / durationMs;
             ticker.querySelector('.chat-ticker-progress-bar').style.width = `${(1 - progress) * 100}%`;
         }
