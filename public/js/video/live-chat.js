@@ -671,9 +671,7 @@
             const length = end - start;
 
             let lengthRangeKey = 1;
-            while (lengthRangeKey * 2 < length) {
-                lengthRangeKey *= 2;
-            }
+            while ((lengthRangeKey *= 2) < length) { }
 
             if (!this._itemsByLengthRange[lengthRangeKey]) {
                 this._itemsByLengthRange[lengthRangeKey] = [];
