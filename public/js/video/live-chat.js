@@ -657,6 +657,62 @@
         }
     }
 
+    class TimeRangeCache {
+        constructor(getStart, getEnd) {
+            this._getStart = getStart;
+            this._getEnd = getEnd;
+            this._itemsByLengthRange = {};
+        }
+
+        // must add items in order
+        add(item) {
+            const start = this._getStart(item);
+            const end = this._getEnd(item);
+            const length = end - start;
+
+            let lengthRangeKey = 1;
+            while (lengthRangeKey * 2 < length) {
+                lengthRangeKey *= 2;
+            }
+
+            if (!this._itemsByLengthRange[lengthRangeKey]) {
+                this._itemsByLengthRange[lengthRangeKey] = [];
+            }
+
+            this._itemsByLengthRange[lengthRangeKey].push({start, end, item});
+        }
+
+        *get(time) {
+            for (const [lengthRangeKey, itemsInRange] of Object.entries(this._itemsByLengthRange)) {
+                let i = this._findIndex(itemsInRange, time - lengthRangeKey);
+                while (i < itemsInRange.length) {
+                    const {start, end, item} = itemsInRange[i];
+                    if (start > time) { break; }
+                    if (end > time) {
+                        yield item;
+                    }
+                    i++;
+                }
+            }
+        }
+
+        // should always have more than 1 element
+        _findIndex(array, value) {
+            let lo = 0;
+            let hi = array.length - 1;
+            while (lo !== hi) {
+                const mid = Math.ceil((lo + hi) / 2);
+                const mValue = array[mid].start;
+                if (mValue > value) {
+                    hi = mid - 1;
+                } else {
+                    lo = mid;
+                }
+            }
+            return lo;
+        }
+    }
+
     class LiveChat {
         constructor(url, videoElement, chatContainer) {
             this._url = url;
@@ -664,7 +720,10 @@
             this._parser = new YoutubeLiveChatParser();
             this._renderer = new LiveChatRenderer(chatContainer, videoElement);
             this._messageCache = [];
-            this._tickerCache = [];
+            this._tickerCache = new TimeRangeCache(
+                (item) => item.offset,
+                (item) => item.offset + item.duration * 1000,
+            );
             this._lineIterator = this._iterateLines();
         }
 
@@ -732,7 +791,7 @@
                     break;
                 case 'CHAT_TICKER_MESSAGE_PAID':
                 case 'CHAT_TICKER_NEW_MEMBER':
-                    this._tickerCache.push(chatItem);
+                    this._tickerCache.add(chatItem);
                     break;
             }
         }
@@ -762,13 +821,7 @@
         }
 
         *_getChatTickers(time) {
-            // TODO use binary search (but mind the time windows)
-            for (const chatTickerItem of this._tickerCache) {
-                if (chatTickerItem.offset > time) { break; }
-                if (chatTickerItem.offset + chatTickerItem.duration * 1000 < time) { continue; }
-                yield chatTickerItem;
-            }
-
+            yield* this._tickerCache.get(time);
         }
     }
 
