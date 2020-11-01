@@ -131,8 +131,13 @@
             if (this._pastMessagesPending) { return; }
             this._pastMessagesPending = true;
 
-            const firstId = this._chatElement.firstChild?.dataset?.id;
-            const firstOffset = Number(this._chatElement.firstChild?.dataset?.offset);
+            if (!this._chatElement.firstChild) {
+                this._pastMessagesPending = false;
+                return;
+            }
+
+            const firstId = this._chatElement.firstChild.dataset.id;
+            const firstOffset = Number(this._chatElement.firstChild.dataset.offset);
 
             const containerFragment = document.createDocumentFragment();
 
