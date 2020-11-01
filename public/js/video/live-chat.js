@@ -690,14 +690,12 @@
 
         *get(time) {
             for (const [lengthRangeKey, itemsInRange] of Object.entries(this._itemsByLengthRange)) {
-                let i = this._findIndex(itemsInRange, time - lengthRangeKey);
-                while (i < itemsInRange.length) {
+                const startIndex = this._findIndex(itemsInRange, time - lengthRangeKey);
+                for (let i = startIndex; i < itemsInRange.length; i++) {
                     const {start, end, item} = itemsInRange[i];
                     if (start > time) { break; }
-                    if (end > time) {
-                        yield item;
-                    }
-                    i++;
+                    if (end <= time) { continue; }
+                    yield item;
                 }
             }
         }
