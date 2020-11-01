@@ -169,7 +169,7 @@
             for (const ticker of this._tickerElement.querySelectorAll('.chat-ticker-wrapper')) {
                 const id = ticker.dataset.id;
                 if (!tickerMap[id]) {
-                    ticker.remove();
+                    this._removeTicker(ticker);
                     continue;
                 }
                 tickerMap[id].ticker = ticker;
@@ -474,12 +474,28 @@
         }
 
         _insertTicker(ticker) {
+            const {right} = this._tickerElement.getBoundingClientRect();
             for (const otherTicker of this._tickerElement.querySelectorAll('.chat-ticker-wrapper')) {
                 if (Number(otherTicker.dataset.offset) > Number(ticker.dataset.offset)) { continue; }
+                const {right: otherRight} = otherTicker.getBoundingClientRect();
                 otherTicker.before(ticker);
+                if (this._tickerElement.scrollLeft > 0 && otherRight < right) {
+                    // TODO use boundingClientRect width but accumulate fractions
+                    this._tickerElement.scrollLeft += ticker.clientWidth + 5; // margin 5px
+                }
                 return;
             }
             this._tickerElement.appendChild(ticker);
+        }
+
+        _removeTicker(ticker) {
+            const {right} = this._tickerElement.getBoundingClientRect();
+            const {right: removedRight} = ticker.getBoundingClientRect();
+            const removedWidth = ticker.clientWidth + 5;
+            ticker.remove();
+            if (this._tickerElement.scrollLeft > 0 && removedRight < right) {
+                this._tickerElement.scrollLeft -= removedWidth;
+            }
         }
 
         _updateTickerProgress(ticker, chatItem) {
