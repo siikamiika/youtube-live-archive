@@ -81,13 +81,15 @@
     }
 
     class LiveChatRenderer {
-        constructor(chatContainer, videoElement) {
+        constructor(chatContainer, videoElement, getPreviousChatMessagesReverse) {
             this._chatElement = chatContainer.querySelector('#live-chat-messages');
             this._tickerElement = chatContainer.querySelector('#live-chat-tickers');
             this._videoElement = videoElement;
+            this._getPreviousChatMessagesReverse = getPreviousChatMessagesReverse;
 
             this._wasScrolledBottom = true;
             this._resizePending = false;
+            this._pastMessagesPending = false;
             window.addEventListener('resize', this._onWindowResize.bind(this));
             this._chatElement.addEventListener('scroll', this._onChatScroll.bind(this));
         }
@@ -123,6 +125,34 @@
             if (lastId) {
                 this._clearLogUntil(null);
             }
+        }
+
+        _renderPastMessages() {
+            if (this._pastMessagesPending) { return; }
+            this._pastMessagesPending = true;
+
+            const firstId = this._chatElement.firstChild?.dataset?.id;
+            const firstOffset = Number(this._chatElement.firstChild?.dataset?.offset);
+
+            const containerFragment = document.createDocumentFragment();
+
+            const eventsReverse = this._getPreviousChatMessagesReverse(firstOffset, 100, firstId);
+            for (const chatItem of eventsReverse) {
+                const chatMessageElement = this._renderChatItem(chatItem);
+                if (!chatMessageElement) { continue; }
+                containerFragment.prepend(chatMessageElement);
+            }
+
+            const topElement = containerFragment.firstChild;
+            const bottomElement = containerFragment.lastChild;
+            this._chatElement.prepend(containerFragment);
+            if (topElement && bottomElement) {
+                const {top} = topElement.getBoundingClientRect();
+                const {bottom} = bottomElement.getBoundingClientRect();
+                this._chatElement.scrollTop = bottom - top;
+            }
+
+            this._pastMessagesPending = false;
         }
 
         renderTickers(events) {
@@ -163,6 +193,10 @@
 
         _onChatScroll() {
             this._wasScrolledBottom = this._isScrolledBottom();
+
+            if (this._isScrolledTop()) {
+                this._renderPastMessages();
+            }
         }
 
         _clearLogUntil(messageId) {
@@ -182,12 +216,16 @@
             return height - pos < 50;
         }
 
+        _isScrolledTop() {
+            return this._chatElement.scrollTop === 0;
+        }
+
         _renderChatItem(chatItem) {
             if (chatItem.type === 'CHAT_MESSAGE_NORMAL') {
                 return buildDom({
                     E: 'div',
                     className: 'chat-message chat-message-normal',
-                    dataset: {id: chatItem.id},
+                    dataset: {id: chatItem.id, offset: chatItem.offset},
                     C: [
                         {E: 'span', className: 'chat-message-timestamp', C: this._formatOffsetTime(chatItem.offset)},
                         this._renderAuthorName(chatItem),
@@ -234,7 +272,7 @@
                 return buildDom({
                     E: 'div',
                     className: 'chat-message chat-message-paid',
-                    dataset: {id: chatItem.id},
+                    dataset: {id: chatItem.id, offset: chatItem.offset},
                     C: [header, body],
                 });
             }
@@ -243,7 +281,7 @@
                 return buildDom({
                     E: 'div',
                     className: 'chat-new-member',
-                    dataset: {id: chatItem.id},
+                    dataset: {id: chatItem.id, offset: chatItem.offset},
                     C: [
                         {
                             E: 'div',
@@ -722,7 +760,7 @@
             this._url = url;
             this._videoElement = videoElement;
             this._parser = new YoutubeLiveChatParser();
-            this._renderer = new LiveChatRenderer(chatContainer, videoElement);
+            this._renderer = new LiveChatRenderer(chatContainer, videoElement, this._getPreviousChatMessagesReverse.bind(this));
             this._messageCache = [];
             this._tickerCache = new TimeRangeCache(
                 (item) => item.offset,
@@ -801,6 +839,33 @@
         }
 
         *_getChatMessages(time, nPrevious=100) {
+            const chatItems = [];
+            let index = this._findChatIndex(time);
+            while (chatItems.length < nPrevious && index >= 0) {
+                chatItems.push(this._messageCache[index]);
+                index--;
+            }
+            for (let i = chatItems.length - 1; i >= 0; i--) {
+                yield chatItems[i];
+            }
+        }
+
+        *_getPreviousChatMessagesReverse(time, nPrevious, currentId) {
+            const startIndex = this._findChatIndex(time + 1); // in case there are many
+            let previousIdFound = false;
+            for (let i = startIndex; i > startIndex - nPrevious && i >= 0; i--) {
+                const chatItem = this._messageCache[i];
+                if (!previousIdFound) {
+                    if (chatItem.id === currentId) {
+                        previousIdFound = true;
+                    }
+                    continue;
+                }
+                yield chatItem;
+            }
+        }
+
+        _findChatIndex(time) {
             let lo = 0;
             let hi = this._messageCache.length - 1;
             while (lo !== hi) {
@@ -812,16 +877,7 @@
                     lo = mid;
                 }
             }
-
-            const chatItems = [];
-            let index = lo;
-            while (chatItems.length < nPrevious && index >= 0) {
-                chatItems.push(this._messageCache[index]);
-                index--;
-            }
-            for (let i = chatItems.length - 1; i >= 0; i--) {
-                yield chatItems[i];
-            }
+            return lo;
         }
 
         *_getChatTickers(time) {
