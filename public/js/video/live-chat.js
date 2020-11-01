@@ -290,10 +290,12 @@
                     C: [
                         {
                             E: 'div',
+                            className: 'chat-new-member-header',
                             C: this._renderAuthorName(chatItem)
                         },
                         {
                             E: 'div',
+                            className: 'chat-new-member-body',
                             C: chatItem.messageParts.map(this._renderMessagePart.bind(this))
                         }
                     ],

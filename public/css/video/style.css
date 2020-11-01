@@ -79,6 +79,11 @@
 /* New member */
 
 .chat-new-member {
+    padding: 2px;
+    line-height: 28px;
+}
+
+.chat-new-member-header, .chat-new-member-body {
     background-color: #0f9d58;
 }
 
