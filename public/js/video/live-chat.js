@@ -474,14 +474,15 @@
         }
 
         _insertTicker(ticker) {
-            const {right} = this._tickerElement.getBoundingClientRect();
+            const {left, right} = this._tickerElement.getBoundingClientRect();
+            const mid = (left + right) / 2;
             for (const otherTicker of this._tickerElement.querySelectorAll('.chat-ticker-wrapper')) {
                 if (Number(otherTicker.dataset.offset) > Number(ticker.dataset.offset)) { continue; }
-                const {right: otherRight} = otherTicker.getBoundingClientRect();
+                const {left: otherLeft} = otherTicker.getBoundingClientRect();
                 otherTicker.before(ticker);
-                if (this._tickerElement.scrollLeft > 0 && otherRight < right) {
-                    // TODO use boundingClientRect width but accumulate fractions
-                    this._tickerElement.scrollLeft += ticker.clientWidth + 5; // margin 5px
+                const {right: addedRight} = ticker.getBoundingClientRect();
+                if (this._tickerElement.scrollLeft > 0 && otherLeft < mid) {
+                    this._tickerElement.scrollLeft += Math.round(addedRight) - Math.round(otherLeft) + 5; // margin 5px
                 }
                 return;
             }
@@ -489,11 +490,12 @@
         }
 
         _removeTicker(ticker) {
-            const {right} = this._tickerElement.getBoundingClientRect();
+            const {left, right} = this._tickerElement.getBoundingClientRect();
+            const mid = (left + right) / 2;
             const {right: removedRight} = ticker.getBoundingClientRect();
             const removedWidth = ticker.clientWidth + 5;
             ticker.remove();
-            if (this._tickerElement.scrollLeft > 0 && removedRight < right) {
+            if (this._tickerElement.scrollLeft > 0 && removedRight < mid) {
                 this._tickerElement.scrollLeft -= removedWidth;
             }
         }
