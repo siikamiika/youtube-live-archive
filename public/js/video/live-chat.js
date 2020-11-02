@@ -335,6 +335,7 @@
                             C: {
                                 E: 'img',
                                 className: 'chat-sticker-paid-image',
+                                style: {width: `${chatItem.stickerWidth}px`, height: `${chatItem.stickerHeight}px`},
                                 src: chatItem.stickerUrl,
                                 alt: chatItem.stickerDescription,
                                 title: chatItem.stickerDescription,
@@ -657,6 +658,8 @@
                     authorName: renderer.authorName.simpleText,
                     stickerUrl: this._parseStickerUrl(renderer),
                     stickerDescription: renderer.sticker.accessibility.accessibilityData.label,
+                    stickerWidth: renderer.stickerDisplayWidth,
+                    stickerHeight: renderer.stickerDisplayHeight,
                     paidAmount: renderer.purchaseAmountText.simpleText,
                     bgColor: renderer.backgroundColor,
                     authorNameColor: renderer.authorNameTextColor,
