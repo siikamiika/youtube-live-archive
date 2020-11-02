@@ -99,17 +99,18 @@
 }
 
 .chat-sticker-paid-info {
-    width: 50%;
+    width: 60%;
     display: inline-block;
+    vertical-align: top;
 }
 
 .chat-sticker-paid-body {
-    width: 50%;
+    width: 40%;
     display: inline-block;
 }
 
 .chat-sticker-paid-image {
-    width: 100px;
+    max-width: 100%;
 }
 
 /* badge colors */
