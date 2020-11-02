@@ -8,6 +8,7 @@ class YoutubeLiveChatResourceDownloader
     private $file;
     private $emojiDirectory;
     private $sponsorBadgeDirectory;
+    private $stickerDirectory;
 
     public function __construct($video)
     {
@@ -35,6 +36,11 @@ class YoutubeLiveChatResourceDownloader
         if (!file_exists($this->sponsorBadgeDirectory)) {
             mkdir($this->sponsorBadgeDirectory, 0755, true);
         }
+
+        $this->stickerDirectory = storage_path('app/public/images/stickers/');
+        if (!file_exists($this->stickerDirectory)) {
+            mkdir($this->stickerDirectory, 0755, true);
+        }
     }
 
     public function downloadChatResources()
@@ -55,7 +61,7 @@ class YoutubeLiveChatResourceDownloader
             if (!$chatAction) { continue; }
 
             $item = $chatAction['item'];
-            $renderer = $item['liveChatTextMessageRenderer'] ?? $item['liveChatPaidMessageRenderer'] ?? null;
+            $renderer = $item['liveChatTextMessageRenderer'] ?? $item['liveChatPaidMessageRenderer'] ?? $item['liveChatPaidStickerRenderer'] ?? null;
             if (!$renderer) { continue; }
 
             if (array_key_exists('message', $renderer)) {
@@ -63,6 +69,9 @@ class YoutubeLiveChatResourceDownloader
             }
             if (array_key_exists('authorBadges', $renderer)) {
                 $this->downloadSponsorBadges($renderer['authorBadges']);
+            }
+            if (array_key_exists('sticker', $renderer)) {
+                $this->downloadStickers($renderer['sticker']['thumbnails']);
             }
         }
     }
@@ -81,7 +90,7 @@ class YoutubeLiveChatResourceDownloader
                 }
             }
             $imagePath = (new Curl($emojiImage['url']))->downloadFile($this->emojiDirectory . $emojiId, ['image/png', 'image/jpeg']);
-            $this->processDownloadedImage($imagePath);
+            $this->convertImage($imagePath, 'png');
         }
     }
 
@@ -121,18 +130,81 @@ class YoutubeLiveChatResourceDownloader
             if (!$badgeThumbnail) { continue; }
 
             $imagePath = (new Curl($badgeThumbnail['url']))->downloadFile($this->sponsorBadgeDirectory . $durationMilestone, ['image/png', 'image/jpeg']);
-            $this->processDownloadedImage($imagePath);
+            $this->convertImage($imagePath, 'png');
         }
     }
 
-    private function processDownloadedImage($path)
+    private function downloadStickers(array $stickers)
     {
-        $imagePathInfo = pathinfo($path);
-        // create a png equivalent but keep the original
-        if ($imagePathInfo['extension'] === 'jpeg') {
-            $imageResource = \imagecreatefromjpeg($path);
-            $pngPath = $imagePathInfo['dirname'] . '/' . $imagePathInfo['filename'] . '.png';
-            \imagepng($imageResource, $pngPath);
+        $maxWidth = null;
+        $chosenUrl = null;
+        foreach ($stickers as $sticker) {
+            if (!$maxWidth || $sticker['width'] > $maxWidth) {
+                $maxWidth = $sticker['width'];
+                $chosenUrl = $sticker['url'];
+            }
+        }
+
+        if (!preg_match('/^(?:https?:)?\/\/(.*)/', $chosenUrl, $matches)) {
+            throw new \RuntimeException('Cannot parse sticker url');
+        }
+
+        $url = 'https://' . $matches[1];
+        $dirName = rtrim(strtr(base64_encode($matches[1]), '+/', '-_'), '=');
+
+        if (file_exists($this->stickerDirectory . $dirName)) {
+            return;
+        }
+        mkdir($this->stickerDirectory . $dirName, 0755, true);
+
+        $filename = $this->stickerDirectory . $dirName . '/sticker';
+        $imagePath = (new Curl($url))->downloadFile($filename, ['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
+        $this->convertImage($imagePath, 'webp');
+    }
+
+    private function convertImage($path, $format)
+    {
+        $convertFn = function ($resource, $pathBase, $format) {
+            switch ($format) {
+                case 'png':
+                    imagepng($resource, $pathBase . '.png');
+                    break;
+                case 'jpeg':
+                    imagejpeg($resource, $pathBase . '.jpeg');
+                    break;
+                case 'webp':
+                    imagewebp($resource, $pathBase . '.webp');
+                    break;
+                case 'gif':
+                    imagegif($resource, $pathBase . '.gif');
+                    break;
+                default:
+                    throw new \Exception('Unsupported format');
+            }
+        };
+
+        $createResourceFn = function ($path) use ($format) {
+            $imagePathInfo = pathinfo($path);
+            $pathBase = $imagePathInfo['dirname'] . '/' . $imagePathInfo['filename'];
+            if ($imagePathInfo['extension'] === $format) {
+                // keep original
+                return [null, $pathBase];
+            }
+            switch ($imagePathInfo['extension']) {
+                case 'jpeg':
+                    return [imagecreatefromjpeg($path), $pathBase];
+                case 'png':
+                    return [imagecreatefrompng($path), $pathBase];
+                case 'webp':
+                    return [imagecreatefromwebp($path), $pathBase];
+                case 'gif':
+                    return [imagecreatefromgif($path), $pathBase];
+            }
+        };
+
+        [$imageResource, $pathBase] = $createResourceFn($path);
+        if ($imageResource) {
+            $convertFn($imageResource, $pathBase, $format);
         }
     }
 }

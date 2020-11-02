@@ -91,6 +91,27 @@
     color: #eee;
 }
 
+/* Stickers */
+
+.chat-sticker-paid {
+    padding: 2px;
+    line-height: 28px;
+}
+
+.chat-sticker-paid-info {
+    width: 50%;
+    display: inline-block;
+}
+
+.chat-sticker-paid-body {
+    width: 50%;
+    display: inline-block;
+}
+
+.chat-sticker-paid-image {
+    width: 100px;
+}
+
 /* badge colors */
 
 .chat-message-author.chat-message-author-sponsor {

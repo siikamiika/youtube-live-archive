@@ -205,7 +205,7 @@
         }
 
         _clearLogUntil(messageId) {
-            for (const chatMessageElement of this._chatElement.querySelectorAll('.chat-message, .chat-new-member')) {
+            for (const chatMessageElement of this._chatElement.querySelectorAll('.chat-message, .chat-new-member, .chat-sticker-paid')) {
                 if (chatMessageElement.dataset.id === messageId) { break; }
                 this._chatElement.removeChild(chatMessageElement);
             }
@@ -297,6 +297,48 @@
                             E: 'div',
                             className: 'chat-new-member-body',
                             C: chatItem.messageParts.map(this._renderMessagePart.bind(this))
+                        }
+                    ],
+                });
+            }
+
+            if (chatItem.type === 'CHAT_STICKER_PAID') {
+                return buildDom({
+                    E: 'div',
+                    className: 'chat-sticker-paid',
+                    style: {backgroundColor: this._convertArgbIntRgbaCss(chatItem.bgColor)},
+                    dataset: {id: chatItem.id, offset: chatItem.offset},
+                    C: [
+                        {
+                            E: 'div',
+                            className: 'chat-sticker-paid-info',
+                            C: [
+                                {
+                                    E: 'div',
+                                    style: {color: this._convertArgbIntRgbaCss(chatItem.authorNameColor)},
+                                    C: this._renderAuthorName(chatItem),
+                                },
+                                {
+                                    E: 'div',
+                                    C: {
+                                        E: 'span',
+                                        className: 'chat-sticker-paid-amount',
+                                        style: {color: this._convertArgbIntRgbaCss(chatItem.moneyFgColor)},
+                                        C: chatItem.paidAmount
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            E: 'div',
+                            className: 'chat-sticker-paid-body',
+                            C: {
+                                E: 'img',
+                                className: 'chat-sticker-paid-image',
+                                src: chatItem.stickerUrl,
+                                alt: chatItem.stickerDescription,
+                                title: chatItem.stickerDescription,
+                            }
                         }
                     ],
                 });
@@ -608,7 +650,21 @@
                 };
             } else if (item.liveChatPaidStickerRenderer) {
                 const renderer = item.liveChatPaidStickerRenderer;
-                // TODO
+                yield {
+                    type: 'CHAT_STICKER_PAID',
+                    id: renderer.id,
+                    authorChannelId: renderer.authorExternalChannelId,
+                    authorName: renderer.authorName.simpleText,
+                    stickerUrl: this._parseStickerUrl(renderer),
+                    stickerDescription: renderer.sticker.accessibility.accessibilityData.label,
+                    paidAmount: renderer.purchaseAmountText.simpleText,
+                    bgColor: renderer.backgroundColor,
+                    authorNameColor: renderer.authorNameTextColor,
+                    // moneyBgColor: renderer.moneyChipBackgroundColor, // TODO not used?
+                    moneyFgColor: renderer.moneyChipTextColor,
+                    badges: this._parseBadges(renderer),
+                    offset,
+                };
             } else if (item.liveChatViewerEngagementMessageRenderer) {
                 // not meaningful for archival
                 return;
@@ -725,6 +781,25 @@
             }
 
             return badges;
+        }
+
+        _parseStickerUrl(renderer) {
+            let maxWidth = null;
+            let chosenUrl = null;
+            for (const {url, width} of renderer.sticker.thumbnails) {
+                if (!maxWidth || width > maxWidth) {
+                    maxWidth = width;
+                    chosenUrl = url;
+                }
+            }
+            const m = /^(?:https?:)?\/\/(.*)$/.exec(chosenUrl);
+            if (!m[1]) { return null; }
+            return '/storage/images/stickers/'
+                + btoa(m[1])
+                    .replaceAll('/', '_')
+                    .replaceAll('+', '-')
+                    .replaceAll('=', '')
+                + '/sticker.webp';
         }
     }
 
@@ -854,6 +929,7 @@
                 case 'CHAT_MESSAGE_NORMAL':
                 case 'CHAT_MESSAGE_PAID':
                 case 'CHAT_NEW_MEMBER':
+                case 'CHAT_STICKER_PAID':
                     this._messageCache.push(chatItem);
                     break;
                 case 'CHAT_TICKER_MESSAGE_PAID':
