@@ -824,7 +824,7 @@
             if (!chosenUrl) { return null; }
             const m = /^(?:https?:)?\/\/(.*)$/.exec(chosenUrl);
             if (!m[1]) { return null; }
-            return `/storage/images/stickers/${this._encodeBase64Url(m[1])}/sticker.webm`;
+            return `/storage/images/stickers/${this._encodeBase64Url(m[1])}/sticker.webp`;
         }
 
         _parseAuthorPhotoUrl(renderer) {
