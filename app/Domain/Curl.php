@@ -4,27 +4,27 @@ namespace App\Domain;
 
 class Curl
 {
+    private static $ch = null;
     private string $url;
-
-    private string $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36';
 
     public function __construct(string $url)
     {
         $this->url = $url;
+        if (!self::$ch) {
+            self::$ch = curl_init();
+            $this->setDefaultOptions(self::$ch);
+        }
     }
 
     public function downloadFile(string $basePath, array $acceptedMime=[])
     {
         $downloadPath = tempnam('/tmp', 'curl-dl-');
 
-        $ch = curl_init($this->url);
+        curl_setopt(self::$ch, CURLOPT_URL, $this->url);
         $fp = fopen($downloadPath, 'wb');
-        curl_setopt($ch, CURLOPT_FILE, $fp);
-        curl_setopt($ch, CURLOPT_HEADER, false);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, $this->userAgent);
-        curl_exec($ch);
-        curl_close($ch);
+        curl_setopt(self::$ch, CURLOPT_FILE, $fp);
+        curl_exec(self::$ch);
+        curl_setopt(self::$ch, CURLOPT_FILE, STDOUT);
         fclose($fp);
 
         $mime = (new \finfo)->file($downloadPath, FILEINFO_MIME_TYPE);
@@ -46,14 +46,23 @@ class Curl
 
     public function downloadString(): string
     {
-        $ch = curl_init($this->url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt(self::$ch, CURLOPT_URL, $this->url);
+        curl_setopt(self::$ch, CURLOPT_RETURNTRANSFER, true);
+        $data = curl_exec(self::$ch);
+        curl_setopt(self::$ch, CURLOPT_RETURNTRANSFER, false);
+        return $data;
+    }
+
+    private function setDefaultOptions($ch): void
+    {
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, $this->userAgent);
-        $data = curl_exec($ch);
-        curl_close($ch);
-        return $data;
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36');
+        curl_setopt($ch, CURLOPT_ENCODING , '');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language: en-us,en;q=0.5',
+        ]);
     }
 
     private function mimeToExtension(string $mimeType): ?string

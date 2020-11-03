@@ -76,6 +76,26 @@
     text-decoration: inherit;
 }
 
+.chat-author-photo-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 26px;
+    height: 10px;
+    padding-right: 0.5em;
+}
+
+.chat-author-photo {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 1px;
+    right: 0;
+    margin: auto;
+}
+
 /* New member */
 
 .chat-new-member {
@@ -173,13 +193,13 @@
 .chat-emoji-container {
     position: relative;
     display: inline-block;
-    width: 32px;
+    width: 26px;
     height: 14px;
 }
 
 .chat-emoji {
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
     position: absolute;
     top: 0;
     bottom: 0;
@@ -203,6 +223,7 @@
     padding: 4px;
     user-select: none;
     cursor: pointer;
+    margin-left: -5px;
 }
 
 .chat-ticker.chat-ticker-message-paid {

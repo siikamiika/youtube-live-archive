@@ -9,6 +9,7 @@ class YoutubeLiveChatResourceDownloader
     private $emojiDirectory;
     private $sponsorBadgeDirectory;
     private $stickerDirectory;
+    private $authorPhotoDirectory;
 
     public function __construct($video)
     {
@@ -41,6 +42,11 @@ class YoutubeLiveChatResourceDownloader
         if (!file_exists($this->stickerDirectory)) {
             mkdir($this->stickerDirectory, 0755, true);
         }
+
+        $this->authorPhotoDirectory = storage_path('app/public/images/author_photos/');
+        if (!file_exists($this->authorPhotoDirectory)) {
+            mkdir($this->authorPhotoDirectory, 0755, true);
+        }
     }
 
     public function downloadChatResources()
@@ -61,7 +67,11 @@ class YoutubeLiveChatResourceDownloader
             if (!$chatAction) { continue; }
 
             $item = $chatAction['item'];
-            $renderer = $item['liveChatTextMessageRenderer'] ?? $item['liveChatPaidMessageRenderer'] ?? $item['liveChatPaidStickerRenderer'] ?? null;
+            $renderer = $item['liveChatTextMessageRenderer']
+                ?? $item['liveChatPaidMessageRenderer']
+                ?? $item['liveChatMembershipItemRenderer']
+                ?? $item['liveChatPaidStickerRenderer']
+                ?? null;
             if (!$renderer) { continue; }
 
             if (array_key_exists('message', $renderer)) {
@@ -72,6 +82,12 @@ class YoutubeLiveChatResourceDownloader
             }
             if (array_key_exists('sticker', $renderer)) {
                 $this->downloadStickers($renderer['sticker']['thumbnails']);
+            }
+            if (array_key_exists('authorPhoto', $renderer)) {
+                $this->downloadAuthorPhotos($renderer['authorPhoto']['thumbnails'], $renderer['authorExternalChannelId']);
+            }
+            if (array_key_exists('sponsorPhoto', $renderer)) {
+                $this->downloadAuthorPhotos($renderer['sponsorPhoto']['thumbnails'], $renderer['authorExternalChannelId']);
             }
         }
     }
@@ -136,21 +152,13 @@ class YoutubeLiveChatResourceDownloader
 
     private function downloadStickers(array $stickers)
     {
-        $maxWidth = null;
-        $chosenUrl = null;
-        foreach ($stickers as $sticker) {
-            if (!$maxWidth || $sticker['width'] > $maxWidth) {
-                $maxWidth = $sticker['width'];
-                $chosenUrl = $sticker['url'];
-            }
-        }
-
+        $chosenUrl = $this->chooseThumbnailUrl($stickers);
         if (!preg_match('/^(?:https?:)?\/\/(.*)/', $chosenUrl, $matches)) {
             throw new \RuntimeException('Cannot parse sticker url');
         }
 
         $url = 'https://' . $matches[1];
-        $dirName = rtrim(strtr(base64_encode($matches[1]), '+/', '-_'), '=');
+        $dirName = $this->encodeBase64Url($matches[1]);
 
         if (file_exists($this->stickerDirectory . $dirName)) {
             return;
@@ -160,6 +168,49 @@ class YoutubeLiveChatResourceDownloader
         $filename = $this->stickerDirectory . $dirName . '/sticker';
         $imagePath = (new Curl($url))->downloadFile($filename, ['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
         $this->convertImage($imagePath, 'webp');
+    }
+
+    private function downloadAuthorPhotos(array $photos, string $channelId)
+    {
+        $authorPhotoChannelDirectory = $this->authorPhotoDirectory . $channelId;
+        if (!file_exists($authorPhotoChannelDirectory)) {
+            mkdir($authorPhotoChannelDirectory, 0755, true);
+        }
+
+        $chosenUrl = $this->chooseThumbnailUrl($photos);
+        $filename = $authorPhotoChannelDirectory . '/' . $this->encodeBase64Url($chosenUrl);
+        if (file_exists($filename . '.jpeg')) {
+            return;
+        }
+        try {
+            $imagePath = (new Curl($chosenUrl))->downloadFile($filename, ['image/png', 'image/jpeg', 'image/webp']);
+        } catch (\RuntimeException $e) {
+            file_put_contents($filename . '.HAS_ERRORS', $chosenUrl);
+            return;
+        }
+        $this->convertImage($imagePath, 'jpeg');
+        // throttle
+        if (random_int(0, 49) === 0) {
+            sleep(2);
+        }
+    }
+
+    private function chooseThumbnailUrl(array $thumbnails)
+    {
+        $maxWidth = null;
+        $chosenUrl = null;
+        foreach ($thumbnails as $thumbnail) {
+            if (!$maxWidth || $thumbnail['width'] > $maxWidth) {
+                $maxWidth = $thumbnail['width'];
+                $chosenUrl = $thumbnail['url'];
+            }
+        }
+        return $chosenUrl;
+    }
+
+    private function encodeBase64Url(string $data)
+    {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 
     private function convertImage($path, $format)

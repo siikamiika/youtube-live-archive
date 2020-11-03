@@ -232,6 +232,7 @@
                     className: 'chat-message chat-message-normal',
                     dataset: {id: chatItem.id, offset: chatItem.offset},
                     C: [
+                        this._renderAuthorPhoto(chatItem),
                         {E: 'span', className: 'chat-message-timestamp', C: this._formatOffsetTime(chatItem.offset)},
                         this._renderAuthorName(chatItem),
                         {E: 'span', className: 'chat-message-body', C: chatItem.messageParts.map(this._renderMessagePart.bind(this))},
@@ -250,7 +251,10 @@
                     C: [
                         {
                             E: 'div',
-                            C: this._renderAuthorName(chatItem)
+                            C: [
+                                this._renderAuthorPhoto(chatItem),
+                                this._renderAuthorName(chatItem),
+                            ]
                         },
                         {
                             E: 'div',
@@ -291,7 +295,10 @@
                         {
                             E: 'div',
                             className: 'chat-new-member-header',
-                            C: this._renderAuthorName(chatItem)
+                            C: [
+                                this._renderAuthorPhoto(chatItem),
+                                this._renderAuthorName(chatItem),
+                            ]
                         },
                         {
                             E: 'div',
@@ -316,7 +323,10 @@
                                 {
                                     E: 'div',
                                     style: {color: this._convertArgbIntRgbaCss(chatItem.authorNameColor)},
-                                    C: this._renderAuthorName(chatItem),
+                                    C: [
+                                        this._renderAuthorPhoto(chatItem),
+                                        this._renderAuthorName(chatItem),
+                                    ]
                                 },
                                 {
                                     E: 'div',
@@ -344,8 +354,6 @@
                     ],
                 });
             }
-
-            // TODO other types
         }
 
         _renderAuthorName(chatItem) {
@@ -418,6 +426,19 @@
             return authorLink;
         }
 
+        _renderAuthorPhoto(chatItem) {
+            return {
+                E: 'div',
+                className: 'chat-author-photo-wrapper',
+                C: {
+                    E: 'img',
+                    className: 'chat-author-photo',
+                    src: chatItem.authorPhotoUrl,
+                    alt: '',
+                },
+            };
+        }
+
         _renderMessagePart(part) {
             if (part.text) {
                 return part.text;
@@ -457,12 +478,15 @@
                                 C: {
                                     E: 'div',
                                     className: 'chat-ticker chat-ticker-message-paid',
-                                    C: {
-                                        E: 'span',
-                                        className: 'chat-ticker-paid-amount',
-                                        style: {color: this._convertArgbIntRgbaCss(chatItem.amountColor)},
-                                        C: chatItem.paidAmount
-                                    }
+                                    C: [
+                                        this._renderAuthorPhoto(chatItem),
+                                        {
+                                            E: 'span',
+                                            className: 'chat-ticker-paid-amount',
+                                            style: {color: this._convertArgbIntRgbaCss(chatItem.amountColor)},
+                                            C: chatItem.paidAmount
+                                        },
+                                    ]
                                 }
                             }
                         },
@@ -494,12 +518,15 @@
                                 C: {
                                     E: 'div',
                                     className: 'chat-ticker chat-ticker-new-member',
-                                    C: {
-                                        E: 'span',
-                                        className: 'chat-ticker-member-text',
-                                        style: {color: this._convertArgbIntRgbaCss(chatItem.textColor)},
-                                        C: chatItem.textParts.map(this._renderMessagePart.bind(this))
-                                    }
+                                    C: [
+                                        this._renderAuthorPhoto(chatItem),
+                                        {
+                                            E: 'span',
+                                            className: 'chat-ticker-member-text',
+                                            style: {color: this._convertArgbIntRgbaCss(chatItem.textColor)},
+                                            C: chatItem.textParts.map(this._renderMessagePart.bind(this))
+                                        },
+                                    ]
                                 }
                             }
                         },
@@ -617,6 +644,7 @@
                     id: renderer.id,
                     authorChannelId: renderer.authorExternalChannelId,
                     authorName: renderer.authorName.simpleText,
+                    authorPhotoUrl: this._parseAuthorPhotoUrl(renderer),
                     messageParts: renderer.message ? renderer.message.runs.map(this._transformMessageRun.bind(this)) : [],
                     badges: this._parseBadges(renderer),
                     offset,
@@ -628,6 +656,7 @@
                     id: renderer.id,
                     authorChannelId: renderer.authorExternalChannelId,
                     authorName: renderer.authorName.simpleText,
+                    authorPhotoUrl: this._parseAuthorPhotoUrl(renderer),
                     messageParts: renderer.message ? renderer.message.runs.map(this._transformMessageRun.bind(this)) : [],
                     paidAmount: renderer.purchaseAmountText.simpleText,
                     headerBgColor: renderer.headerBackgroundColor,
@@ -645,6 +674,7 @@
                     id: renderer.id,
                     authorChannelId: renderer.authorExternalChannelId,
                     authorName: renderer.authorName.simpleText,
+                    authorPhotoUrl: this._parseAuthorPhotoUrl(renderer),
                     messageParts: renderer.headerSubtext ? renderer.headerSubtext.runs.map(this._transformMessageRun.bind(this)) : [],
                     badges: this._parseBadges(renderer),
                     offset,
@@ -656,6 +686,7 @@
                     id: renderer.id,
                     authorChannelId: renderer.authorExternalChannelId,
                     authorName: renderer.authorName.simpleText,
+                    authorPhotoUrl: this._parseAuthorPhotoUrl(renderer),
                     stickerUrl: this._parseStickerUrl(renderer),
                     stickerDescription: renderer.sticker.accessibility.accessibilityData.label,
                     stickerWidth: renderer.stickerDisplayWidth,
@@ -688,6 +719,7 @@
                 yield {
                     type: 'CHAT_TICKER_MESSAGE_PAID',
                     id: renderer.id,
+                    authorPhotoUrl: this._parseAuthorPhotoUrl(renderer),
                     paidAmount: renderer.amount.simpleText,
                     amountColor: renderer.amountTextColor,
                     startBgColor: renderer.startBackgroundColor,
@@ -701,6 +733,7 @@
                 yield {
                     type: 'CHAT_TICKER_NEW_MEMBER',
                     id: renderer.id,
+                    authorPhotoUrl: this._parseAuthorPhotoUrl(renderer),
                     textParts: renderer.detailText ? renderer.detailText.runs.map(this._transformMessageRun.bind(this)) : [],
                     textColor: renderer.detailTextColor,
                     startBgColor: renderer.startBackgroundColor,
@@ -787,22 +820,40 @@
         }
 
         _parseStickerUrl(renderer) {
+            const chosenUrl = this._chooseThumbnailUrl(renderer.sticker.thumbnails);
+            if (!chosenUrl) { return null; }
+            const m = /^(?:https?:)?\/\/(.*)$/.exec(chosenUrl);
+            if (!m[1]) { return null; }
+            return `/storage/images/stickers/${this._encodeBase64Url(m[1])}/sticker.webm`;
+        }
+
+        _parseAuthorPhotoUrl(renderer) {
+            const thumbnails = (renderer.authorPhoto ?? renderer.sponsorPhoto)?.thumbnails;
+            if (!thumbnails) { return null; }
+            const chosenUrl = this._chooseThumbnailUrl(thumbnails);
+            if (!chosenUrl) { return null; }
+            const filename = this._encodeBase64Url(chosenUrl);
+            const channelId = renderer.authorExternalChannelId;
+            return `/storage/images/author_photos/${channelId}/${filename}.jpeg`;
+        }
+
+        _encodeBase64Url(bytes) {
+            return btoa(bytes)
+                .replaceAll('/', '_')
+                .replaceAll('+', '-')
+                .replaceAll('=', '');
+        }
+
+        _chooseThumbnailUrl(thumbnails) {
             let maxWidth = null;
             let chosenUrl = null;
-            for (const {url, width} of renderer.sticker.thumbnails) {
+            for (const {url, width} of thumbnails) {
                 if (!maxWidth || width > maxWidth) {
                     maxWidth = width;
                     chosenUrl = url;
                 }
             }
-            const m = /^(?:https?:)?\/\/(.*)$/.exec(chosenUrl);
-            if (!m[1]) { return null; }
-            return '/storage/images/stickers/'
-                + btoa(m[1])
-                    .replaceAll('/', '_')
-                    .replaceAll('+', '-')
-                    .replaceAll('=', '')
-                + '/sticker.webp';
+            return chosenUrl;
         }
     }
 
