@@ -38,7 +38,7 @@
 }
 
 #live-chat-messages {
-    height: calc(100% - 32px);
+    height: calc(100% - 36px);
     width: 100%;
     overflow-y: scroll;
     word-break: break-word;
@@ -46,7 +46,7 @@
 
 .live-chat-ticker-container {
     width: 100%;
-    height: 32px;
+    height: 36px;
     overflow: hidden;
 }
 
@@ -80,8 +80,8 @@
     position: relative;
     display: inline-block;
     width: 26px;
-    height: 10px;
     padding-right: 0.5em;
+    vertical-align: middle;
 }
 
 .chat-author-photo {
@@ -194,7 +194,7 @@
     position: relative;
     display: inline-block;
     width: 26px;
-    height: 14px;
+    vertical-align: middle;
 }
 
 .chat-emoji {
@@ -224,6 +224,7 @@
     user-select: none;
     cursor: pointer;
     margin-left: -5px;
+    line-height: 22px;
 }
 
 .chat-ticker.chat-ticker-message-paid {
