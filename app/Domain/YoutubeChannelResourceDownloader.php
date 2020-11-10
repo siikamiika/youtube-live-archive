@@ -2,6 +2,8 @@
 
 namespace App\Domain;
 
+use Illuminate\Support\Facades\Log;
+
 class YoutubeChannelResourceDownloader
 {
     private $channel;
@@ -34,7 +36,8 @@ class YoutubeChannelResourceDownloader
             }
         }
         if (!$bannerImage) {
-            throw new \RuntimeException('Could not find banner image');
+            Log::warning('Could not find banner image', $this->ytInitialData ?? []);
+            return;
         }
         (new Curl($bannerImage['url']))->downloadFile($directory . 'banner', ['image/jpeg']);
     }
@@ -47,7 +50,8 @@ class YoutubeChannelResourceDownloader
         }
 
         if (!preg_match('/\<meta property="og:image" content="(.*?)"\>/', $this->channelHtml, $matches)) {
-            throw new \RuntimeException('Could not find avatar');
+            Log::warning('Could not find avatar', [$this->channelHtml]);
+            return;
         }
         (new Curl($matches[1]))->downloadFile($directory . 'avatar', ['image/jpeg']);
     }

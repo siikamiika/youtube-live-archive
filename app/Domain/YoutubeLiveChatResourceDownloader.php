@@ -145,7 +145,7 @@ class YoutubeLiveChatResourceDownloader
             $badgeThumbnail = end($badgeRenderer['customThumbnail']['thumbnails']);
             if (!$badgeThumbnail) { continue; }
 
-            $imagePath = (new Curl($badgeThumbnail['url']))->downloadFile($this->sponsorBadgeDirectory . $durationMilestone, ['image/png', 'image/jpeg']);
+            $imagePath = (new Curl($badgeThumbnail['url']))->downloadFile($this->sponsorBadgeDirectory . $durationMilestone, ['image/png', 'image/jpeg', 'image/gif']);
             $this->convertImage($imagePath, 'png');
         }
     }
