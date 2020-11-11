@@ -57,16 +57,15 @@ class YoutubeLiveChatResourceDownloader
             $action = json_decode($line, true);
             $actions = $action['replayChatItemAction']['actions'] ?? null;
             if (!$actions) { continue; }
-            $chatAction = null;
+            $item = null;
             foreach ($actions as $action2) {
-                if (array_key_exists('addChatItemAction', $action2)) {
-                    $chatAction = $action2['addChatItemAction'];
-                    break;
-                }
+                $item = $action2['addChatItemAction']['item']
+                    ?? $action2['addBannerToLiveChatCommand']['bannerRenderer']['liveChatBannerRenderer']['contents']
+                    ?? null;
+                if ($item) { break; }
             }
-            if (!$chatAction) { continue; }
+            if (!$item) { continue; }
 
-            $item = $chatAction['item'];
             $renderer = $item['liveChatTextMessageRenderer']
                 ?? $item['liveChatPaidMessageRenderer']
                 ?? $item['liveChatMembershipItemRenderer']
