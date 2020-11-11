@@ -84,6 +84,7 @@
         constructor(chatContainer, videoElement, getPreviousChatMessagesReverse) {
             this._chatElement = chatContainer.querySelector('#live-chat-messages');
             this._tickerElement = chatContainer.querySelector('#live-chat-tickers');
+            this._bannerElement = chatContainer.querySelector('#live-chat-banner');
             this._videoElement = videoElement;
             this._getPreviousChatMessagesReverse = getPreviousChatMessagesReverse;
 
@@ -183,6 +184,31 @@
                 if (!tickerElement) { continue; }
                 this._updateTickerProgress(tickerElement, chatItem);
                 this._insertTicker(tickerElement);
+            }
+        }
+
+        renderBanners(events) {
+            // there's really only one at a time at most, but for loop is convenient
+            const bannerMap = {};
+            for (const chatItem of events) {
+                bannerMap[chatItem.id] = {chatItem, banner: null};
+            }
+
+            for (const banner of this._bannerElement.querySelectorAll('.chat-banner')) {
+                const id = banner.dataset.id;
+                if (!bannerMap[id]) {
+                    banner.remove();
+                    continue;
+                }
+                bannerMap[id].banner = banner;
+            }
+
+            for (const [_, {chatItem, banner}] of Object.entries(bannerMap)) {
+                if (banner) { continue; }
+
+                const bannerElement = this._renderBanner(chatItem);
+                if (!bannerElement) { continue; }
+                this._bannerElement.appendChild(bannerElement);
             }
         }
 
@@ -597,6 +623,48 @@
             }
         }
 
+        _renderBanner(chatItem) {
+            if (chatItem.type === 'CHAT_BANNER') {
+                return buildDom({
+                    E: 'div',
+                    className: 'chat-banner',
+                    dataset: {id: chatItem.id, offset: chatItem.offset, closed: false, collapsed: false},
+                    onclick: this._onChatBannerClick.bind(this),
+                    C: [
+                        {
+                            E: 'div',
+                            className: 'chat-banner-header',
+                            C: [
+                                ...chatItem.headerTextParts.map(this._renderMessagePart.bind(this)),
+                                {
+                                    E: 'div',
+                                    className: 'chat-banner-close-button',
+                                    onclick: this._onChatBannerCloseClick.bind(this),
+                                },
+                            ]
+                        },
+                        {
+                            E: 'div',
+                            className: 'chat-banner-expanded-message-wrapper',
+                            C: this._renderChatItem(chatItem.expandedMessage),
+                        }
+                    ]
+                });
+            }
+        }
+
+        _onChatBannerClick(e) {
+            e.stopPropagation();
+            e.currentTarget.dataset.collapsed = e.currentTarget.dataset.collapsed === 'false'
+                ? true
+                : false;
+        }
+
+        _onChatBannerCloseClick(e) {
+            e.stopPropagation();
+            e.currentTarget.closest('.chat-banner').dataset.closed = true;
+        }
+
         _convertArgbIntRgbaCss(color) {
             const b = color & 0xff;
             const g = (color >> 8) & 0xff;
@@ -630,6 +698,8 @@
                     yield* this._parseAddChatItemAction(action.addChatItemAction?.item, offset);
                 } else if (action.addLiveChatTickerItemAction?.item) {
                     yield* this._parseAddLiveChatTickerItemAction(action.addLiveChatTickerItemAction.item, offset);
+                } else if (action.addBannerToLiveChatCommand?.bannerRenderer) {
+                    yield* this._parseAddBannerToLiveChatCommand(action.addBannerToLiveChatCommand.bannerRenderer, offset);
                 } else {
                     throw new Error('Unknown chat action: ' + JSON.stringify(action));
                 }
@@ -747,6 +817,21 @@
                 // TODO
             } else {
                 throw new Error('Unknown chat ticker renderer: ' + JSON.stringify(item));
+            }
+        }
+
+        *_parseAddBannerToLiveChatCommand(item, offset) {
+            if (item.liveChatBannerRenderer) {
+                const renderer = item.liveChatBannerRenderer;
+                const expandedMessage = this._parseAddChatItemAction(renderer.contents, offset).next()?.value;
+                if (!expandedMessage) { return; }
+                yield {
+                    type: 'CHAT_BANNER',
+                    id: expandedMessage.id,
+                    headerTextParts: renderer.header.liveChatBannerHeaderRenderer.text.runs.map(this._transformMessageRun.bind(this)),
+                    expandedMessage,
+                    offset,
+                };
             }
         }
 
@@ -920,6 +1005,7 @@
                 (item) => item.offset,
                 (item) => item.offset + item.duration * 1000,
             );
+            this._bannerCache = [];
             this._lineIterator = this._iterateLines();
         }
 
@@ -928,6 +1014,7 @@
             await this._fetchNewChatItems(currentTimeMs);
             this._renderer.renderMessages(this._getChatMessages(currentTimeMs));
             this._renderer.renderTickers(this._getChatTickers(currentTimeMs));
+            this._renderer.renderBanners(this._getBanners(currentTimeMs));
         }
 
         // https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read
@@ -990,6 +1077,9 @@
                 case 'CHAT_TICKER_NEW_MEMBER':
                     this._tickerCache.add(chatItem);
                     break;
+                case 'CHAT_BANNER':
+                    this._bannerCache.push(chatItem);
+                    break;
             }
         }
 
@@ -1037,6 +1127,17 @@
 
         *_getChatTickers(time) {
             yield* this._tickerCache.get(time);
+        }
+
+        *_getBanners(time) {
+            let banner = null;
+            for (const chatItem of this._bannerCache) {
+                if (chatItem.offset > time) { break; }
+                banner = chatItem;
+            }
+            if (banner) {
+                yield banner;
+            }
         }
     }
 
