@@ -722,8 +722,7 @@
                     authorPhotoUrl: this._parseAuthorPhotoUrl(renderer),
                     messageParts: renderer.message ? renderer.message.runs.map(this._transformMessageRun.bind(this)) : [],
                     badges: this._parseBadges(renderer),
-                    timestamp: Number(renderer.timestampUsec),
-                    offset,
+                    offset: offset > 0 ? offset : this._parseTimestampText(renderer),
                 };
             } else if (item.liveChatPaidMessageRenderer) {
                 const renderer = item.liveChatPaidMessageRenderer;
@@ -741,8 +740,7 @@
                     bodyFgColor: renderer.bodyTextColor,
                     authorNameColor: renderer.authorNameTextColor,
                     badges: this._parseBadges(renderer),
-                    timestamp: Number(renderer.timestampUsec),
-                    offset,
+                    offset: offset > 0 ? offset : this._parseTimestampText(renderer),
                 };
             } else if (item.liveChatMembershipItemRenderer) {
                 const renderer = item.liveChatMembershipItemRenderer;
@@ -754,8 +752,7 @@
                     authorPhotoUrl: this._parseAuthorPhotoUrl(renderer),
                     messageParts: renderer.headerSubtext ? renderer.headerSubtext.runs.map(this._transformMessageRun.bind(this)) : [],
                     badges: this._parseBadges(renderer),
-                    timestamp: Number(renderer.timestampUsec),
-                    offset,
+                    offset: offset > 0 ? offset : this._parseTimestampText(renderer),
                 };
             } else if (item.liveChatPaidStickerRenderer) {
                 const renderer = item.liveChatPaidStickerRenderer;
@@ -775,8 +772,7 @@
                     // moneyBgColor: renderer.moneyChipBackgroundColor, // TODO not used?
                     moneyFgColor: renderer.moneyChipTextColor,
                     badges: this._parseBadges(renderer),
-                    timestamp: Number(renderer.timestampUsec),
-                    offset,
+                    offset: offset > 0 ? offset : this._parseTimestampText(renderer),
                 };
             } else if (item.liveChatViewerEngagementMessageRenderer) {
                 // not meaningful for archival
@@ -806,8 +802,7 @@
                     endBgColor: renderer.endBackgroundColor,
                     duration: renderer.fullDurationSec,
                     expandedMessage,
-                    timestamp: expandedMessage.timestamp,
-                    offset,
+                    offset: expandedMessage.offset,
                 };
             } else if (item.liveChatTickerSponsorItemRenderer) {
                 const renderer = item.liveChatTickerSponsorItemRenderer;
@@ -822,8 +817,7 @@
                     endBgColor: renderer.endBackgroundColor,
                     duration: renderer.fullDurationSec,
                     expandedMessage,
-                    timestamp: expandedMessage.timestamp,
-                    offset,
+                    offset: expandedMessage.offset,
                 };
             } else if (item.liveChatTickerPaidStickerItemRenderer) {
                 const renderer = item.liveChatTickerPaidStickerItemRenderer;
@@ -843,8 +837,7 @@
                     id: expandedMessage.id,
                     headerTextParts: renderer.header.liveChatBannerHeaderRenderer.text.runs.map(this._transformMessageRun.bind(this)),
                     expandedMessage,
-                    timestamp: expandedMessage.timestamp,
-                    offset,
+                    offset: expandedMessage.offset,
                 };
             }
         }
@@ -953,6 +946,24 @@
                 }
             }
             return chosenUrl;
+        }
+
+        _parseTimestampText(renderer) {
+            const timestampText = renderer?.timestampText?.simpleText;
+            if (!timestampText) { return 0; }
+            const negative = /^-/.test(timestampText);
+            const parts = [...timestampText.matchAll(/[0-9]+/g)]
+                .map((m) => Number(m[0]))
+                .reverse();
+            const multipliers = [1000, 60, 60];
+            if (parts.length > multipliers.length) { throw new Error('Too many timestamp parts'); }
+            let multiplier = 1;
+            let result = 0;
+            for (let i = 0; i < parts.length; i++) {
+                multiplier *= multipliers[i];
+                result += multiplier * parts[i];
+            }
+            return (negative ? -1 : 1) * result;
         }
     }
 
@@ -1084,8 +1095,7 @@
         }
 
         async _fetchNewChatItems(time) {
-            const isFirst = this._messageCache.length === 0;
-            if (isFirst || this._messageCache[this._messageCache.length - 1].offset < time) {
+            if (this._messageCache.length === 0 || this._messageCache[this._messageCache.length - 1].offset < time) {
                 for (;;) {
                     const {value, done} = await this._lineIterator.next();
                     if (done) { break; }
@@ -1096,10 +1106,6 @@
                     }
                     if (lastChatItem && lastChatItem.offset > time) { break; }
                 }
-            }
-
-            if (isFirst) {
-                this._updateNegativeOffsets();
             }
         }
 
@@ -1176,30 +1182,6 @@
             if (banner) {
                 yield banner;
             }
-        }
-
-        _updateNegativeOffsets() {
-            const chatItems = [
-                ...this._messageCache,
-                ...this._tickerCache.getAll(),
-                ...this._bannerCache,
-            ];
-
-            const nonNegativeOffsetChatItem = chatItems.find((chatItem) => chatItem.offset > 0);
-            if (!nonNegativeOffsetChatItem) { return; }
-
-            const startTimestamp = nonNegativeOffsetChatItem.timestamp - (1000 * nonNegativeOffsetChatItem.offset);
-            for (const chatItem of chatItems) {
-                if (chatItem.offset > 0) { continue; }
-                chatItem.offset = Math.round((chatItem.timestamp - startTimestamp) / 1000);
-                if (chatItem.expandedMessage) {
-                    chatItem.expandedMessage.offset = Math.round((chatItem.expandedMessage.timestamp - startTimestamp) / 1000);
-                }
-            }
-
-            this._messageCache.sort((a, b) => a.offset - b.offset);
-            this._tickerCache.rebuild();
-            this._bannerCache.sort((a, b) => a.offset - b.offset);
         }
     }
 
