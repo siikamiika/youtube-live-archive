@@ -85,6 +85,7 @@
             this._chatElement = chatContainer.querySelector('#live-chat-messages');
             this._tickerElement = chatContainer.querySelector('#live-chat-tickers');
             this._bannerElement = chatContainer.querySelector('#live-chat-banner');
+            this._danmakuContainer = document.querySelector('#danmaku-container');
             this._videoElement = videoElement;
             this._getPreviousChatMessagesReverse = getPreviousChatMessagesReverse;
 
@@ -114,6 +115,20 @@
                 const chatMessageElement = this._renderChatItem(chatItem);
                 if (!chatMessageElement) { continue; }
                 this._chatElement.appendChild(chatMessageElement);
+
+                if (this._danmakuContainer) {
+                    const danmakuMessage = this._renderChatItem(chatItem);
+                    this._danmakuContainer.appendChild(danmakuMessage);
+                    danmakuMessage.animate(
+                        [{transform: 'scale(2)'}],
+                        {fill: 'both', duration: 0, composite: 'add'}
+                    ).play();
+                    danmakuMessage.animate(
+                        [{transform: 'translateX(100%)'}, {transform: 'translateX(-100%)'}],
+                        {fill: 'both', duration: 8000, composite: 'add'}
+                    ).play();
+                    setTimeout(() => danmakuMessage.remove(), 8000);
+                }
 
                 if (this._wasScrolledBottom) {
                     this._clearLogUntil(firstChatItem.id);

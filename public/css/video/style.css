@@ -296,6 +296,27 @@
     content: "📌 ";
 }
 
+/* Danmaku */
+
+#danmaku-container {
+    position: absolute;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+#danmaku-container .chat-message {
+    display: inline-block;
+    pointer-events: auto;
+}
+
+#danmaku-container .chat-message-normal {
+    text-shadow: 4px 2px 3px black;
+}
+
 /* Responsiveness */
 
 @media only screen and (max-width: 1000px) {
