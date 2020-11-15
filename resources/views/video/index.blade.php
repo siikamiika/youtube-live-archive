@@ -86,13 +86,15 @@
             }}</pre>
         </div>
 
-        <script type="text/javascript">
-            window.app = window.app || {};
-            app.liveChatResource = {!! json_encode($files->live_chat->url ?? null) !!};
-            app.videoId = {!! json_encode($video->id) !!};
-            app.channelId = {!! json_encode($video->channel->id) !!};
+        <script id="app-config" type="application/json">
+            {!!  json_encode([
+                'liveChatResource' => $files->live_chat->url ?? null,
+                'videoId' => $video->id,
+                'channelId' => $video->channel->id,
+            ]) !!}
         </script>
-        <script type="text/javascript" src="/js/video/video.js"></script>
-        <script type="text/javascript" src="/js/video/live-chat.js"></script>
+        <script type="module" src="/js/video/app-config.js"></script>
+        <script type="module" src="/js/video/video.js"></script>
+        <script type="module" src="/js/video/live-chat.js"></script>
     </body>
 </html>

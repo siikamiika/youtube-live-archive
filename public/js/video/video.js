@@ -1,3 +1,5 @@
+import app from './app-config.js';
+
 (() => {
     const video = document.querySelector('#video');
     const audio = document.querySelector('#audio');

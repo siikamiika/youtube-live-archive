@@ -1,3 +1,5 @@
+import app from './app-config.js';
+
 (async () => {
     function buildDom(object, targetObject) {
         /* Builds a DOM element out of an object of the format
