@@ -41,8 +41,9 @@ import LiveChat from './live-chat/LiveChat.js';
 
     const videoElement = document.querySelector('#video');
     const liveChatContainer = document.querySelector('#live-chat');
+    const danmakuContainer = document.querySelector('#danmaku-container');
 
-    const liveChat = new LiveChat(app.liveChatResource, videoElement, liveChatContainer, app.channelId);
+    const liveChat = new LiveChat(app.liveChatResource, videoElement, liveChatContainer, danmakuContainer, app.channelId);
 
     let liveChatIntervalId = null;
 

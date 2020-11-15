@@ -13,4 +13,14 @@ export default class ChatMessage {
             default: return null;
         }
     }
+
+    static createFromElement(element) {
+        switch (element.__component.constructor.name) {
+            case 'ChatMessageNormal': return ChatMessageNormal.createFromElement(element);
+            case 'ChatMessagePaid': return ChatMessagePaid.createFromElement(element);
+            case 'ChatNewMember': return ChatNewMember.createFromElement(element);
+            case 'ChatStickerPaid': return ChatStickerPaid.createFromElement(element);
+            default: return null;
+        }
+    }
 }

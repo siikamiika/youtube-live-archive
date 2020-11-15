@@ -25,6 +25,8 @@
                                 <source src="{{ $files->audio->url }}">
                             </audio>
                         @endif
+
+                        <div id="danmaku-container"></div>
                     </div>
 
                     <div id="live-chat">

@@ -14,11 +14,25 @@ export default class ChatDataApi {
         this._lineIterator = this._iterateLines();
     }
 
-    *getChatMessages(time, nPrevious=100) {
+    *getChatMessagesAmount(time, nPrevious) {
         const chatItems = [];
         let index = this._findChatIndex(time);
         while (chatItems.length < nPrevious && index >= 0) {
             chatItems.push(this._messageCache[index]);
+            index--;
+        }
+        for (let i = chatItems.length - 1; i >= 0; i--) {
+            yield chatItems[i];
+        }
+    }
+
+    *getChatMessagesTimeRange(time, historySeconds) {
+        const chatItems = [];
+        let index = this._findChatIndex(time);
+        while (index >= 0) {
+            const chatItem = this._messageCache[index];
+            if (chatItem.offset + (historySeconds * 1000) <= time) { break; }
+            chatItems.push(chatItem);
             index--;
         }
         for (let i = chatItems.length - 1; i >= 0; i--) {
