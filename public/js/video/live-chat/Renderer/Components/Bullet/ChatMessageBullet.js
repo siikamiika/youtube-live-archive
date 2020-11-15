@@ -10,9 +10,14 @@ export default class ChatMessageBullet extends Component {
 
     animate() {
         if (!this._animation) {
+            const {width} = this.element.getBoundingClientRect();
+            const containerElement = this.element.closest('#danmaku-container');
+            const {width: containerWidth} = containerElement.getBoundingClientRect();
+            const xFrom = containerWidth + width;
+            const xTo = -width;
             this._animation = this.element.animate(
-                [{transform: 'translateX(100%) scale(1.5)'}, {transform: 'translateX(-200%) scale(1.5)'}],
-                {fill: 'both', duration: 8000, composite: 'add'}
+                [{transform: `translateX(${xFrom}px) scale(1.5)`}, {transform: `translateX(${xTo}px) scale(1.5)`}],
+                {fill: 'both', duration: 8000}
             );
         }
         this._animation.play();
@@ -25,11 +30,20 @@ export default class ChatMessageBullet extends Component {
 
     _render() {
         const position = Math.floor(Math.random() * 10) * 60;
+
+        let textShadow = '';
+        if (this._chatItem.type === 'CHAT_MESSAGE_NORMAL') {
+            textShadow = `1px 1px 0px black`;
+        }
+
         return {
             E: 'div',
             dataset: {id: this._chatItem.id, offset: this._chatItem.offset},
             className: 'chat-bullet',
-            style: {top: position + 'px'},
+            style: {
+                top: position + 'px',
+                textShadow,
+            },
             C: ChatMessage.create(this._chatItem).element,
         };
     }

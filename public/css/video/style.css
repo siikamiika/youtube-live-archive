@@ -310,9 +310,7 @@
 
 #danmaku-container .chat-bullet {
     display: inline-block;
-    text-shadow: 1px 1px 0px black;
     position: absolute;
-    right: 0;
 }
 
 /* Responsiveness */
