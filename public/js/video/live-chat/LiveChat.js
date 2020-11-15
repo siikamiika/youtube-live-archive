@@ -1,5 +1,5 @@
 import YoutubeLiveChatParser from './YoutubeLiveChatParser.js';
-import LiveChatRenderer from './LiveChatRenderer.js';
+import LiveChatRenderer from './Renderer/LiveChatRenderer.js';
 import TimeRangeCache from './TimeRangeCache.js';
 
 export default class LiveChat {

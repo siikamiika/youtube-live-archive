@@ -1,4 +1,5 @@
 import buildDom from '/js/helpers/build-dom.js';
+import MessageParts from './MessageParts.js';
 
 export default class LiveChatRenderer {
     constructor(chatContainer, videoElement, getPreviousChatMessagesReverse) {
@@ -181,7 +182,7 @@ export default class LiveChatRenderer {
                     this._renderAuthorPhoto(chatItem),
                     {E: 'span', className: 'chat-message-timestamp', C: this._formatOffsetTime(chatItem.offset)},
                     this._renderAuthorName(chatItem),
-                    {E: 'span', className: 'chat-message-body', C: chatItem.messageParts.map(this._renderMessagePart.bind(this))},
+                    {E: 'span', className: 'chat-message-body', C: (new MessageParts(chatItem.messageParts)).render()},
                 ],
             });
         }
@@ -220,7 +221,7 @@ export default class LiveChatRenderer {
                     E: 'span',
                     className: 'chat-message-body',
                     style: {color: this._convertArgbIntRgbaCss(chatItem.bodyFgColor)},
-                    C: chatItem.messageParts.map(this._renderMessagePart.bind(this))
+                    C: (new MessageParts(chatItem.messageParts)).render()
                 }
             };
 
@@ -249,7 +250,7 @@ export default class LiveChatRenderer {
                     {
                         E: 'div',
                         className: 'chat-new-member-body',
-                        C: chatItem.messageParts.map(this._renderMessagePart.bind(this))
+                        C: (new MessageParts(chatItem.messageParts)).render()
                     }
                 ],
             });
@@ -385,26 +386,6 @@ export default class LiveChatRenderer {
         };
     }
 
-    _renderMessagePart(part) {
-        if (part.text) {
-            return part.text;
-        }
-
-        if (part.emoji) {
-            return {
-                E: 'div',
-                className: 'chat-emoji-container',
-                C: {
-                    E: 'img',
-                    className: 'chat-emoji',
-                    src: part.emoji.url,
-                    alt: part.emoji.name,
-                    title: part.emoji.name,
-                }
-            };
-        }
-    }
-
     _renderTicker(chatItem) {
         if (chatItem.type === 'CHAT_TICKER_MESSAGE_PAID') {
             return buildDom({
@@ -470,7 +451,7 @@ export default class LiveChatRenderer {
                                         E: 'span',
                                         className: 'chat-ticker-member-text',
                                         style: {color: this._convertArgbIntRgbaCss(chatItem.textColor)},
-                                        C: chatItem.textParts.map(this._renderMessagePart.bind(this))
+                                        C: (new MessageParts(chatItem.textParts)).render()
                                     },
                                 ]
                             }
@@ -555,7 +536,7 @@ export default class LiveChatRenderer {
                         E: 'div',
                         className: 'chat-banner-header',
                         C: [
-                            ...chatItem.headerTextParts.map(this._renderMessagePart.bind(this)),
+                            ...(new MessageParts(chatItem.headerTextParts)).render(),
                             {
                                 E: 'div',
                                 className: 'chat-banner-close-button',
