@@ -94,7 +94,6 @@
             ]) !!}
         </script>
         <script type="module" src="/js/video/app-config.js"></script>
-        <script type="module" src="/js/video/video.js"></script>
-        <script type="module" src="/js/video/live-chat.js"></script>
+        <script type="module" src="/js/video/main.js"></script>
     </body>
 </html>

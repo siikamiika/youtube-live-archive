@@ -1,5 +1,7 @@
 import app from './app-config.js';
+import LiveChat from './live-chat/LiveChat.js';
 
+// video
 (() => {
     const video = document.querySelector('#video');
     const audio = document.querySelector('#audio');
@@ -28,5 +30,28 @@ import app from './app-config.js';
     window.addEventListener('beforeunload', (event) => {
         if (notPlayedYet) { return; }
         window.localStorage.setItem(`video-pos-${app.videoId}`, JSON.stringify(video.currentTime));
+    });
+})();
+
+// live chat
+(async () => {
+    if (!app.liveChatResource) {
+        return;
+    }
+
+    const videoElement = document.querySelector('#video');
+    const liveChatContainer = document.querySelector('#live-chat');
+
+    const liveChat = new LiveChat(app.liveChatResource, videoElement, liveChatContainer, app.channelId);
+
+    let liveChatIntervalId = null;
+
+    videoElement.addEventListener('playing', (event) => {
+        clearInterval(liveChatIntervalId);
+        liveChatIntervalId = setInterval(() => liveChat.updateLiveChat(), 100);
+    });
+
+    videoElement.addEventListener('pause', (event) => {
+        clearInterval(liveChatIntervalId);
     });
 })();
