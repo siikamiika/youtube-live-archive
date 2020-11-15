@@ -1,13 +1,13 @@
-import buildDom from '/js/helpers/build-dom.js';
+import Component from '/js/DomComponents/Component.js';
 import MessageParts from '../MessageParts.js';
 import AuthorPhoto from '../AuthorPhoto.js';
 import AuthorName from '../AuthorName.js';
 import {convertArgbIntRgbaCss} from '/js/helpers/css.js';
 
-export default class ChatMessagePaid {
+export default class ChatMessagePaid extends Component {
     constructor(chatItem) {
+        super();
         this._chatItem = chatItem;
-        this.element = buildDom(this._render());
     }
 
     _render() {
@@ -24,8 +24,8 @@ export default class ChatMessagePaid {
                 {
                     E: 'div',
                     C: [
-                        (new AuthorPhoto(this._chatItem.authorPhotoUrl)).element,
-                        (new AuthorName(this._chatItem)).element,
+                        AuthorPhoto.create(this._chatItem.authorPhotoUrl).element,
+                        AuthorName.create(this._chatItem).element,
                     ]
                 },
                 {
@@ -46,7 +46,7 @@ export default class ChatMessagePaid {
                 E: 'span',
                 className: 'chat-message-body',
                 style: {color: convertArgbIntRgbaCss(this._chatItem.bodyFgColor)},
-                C: (new MessageParts(this._chatItem.messageParts)).element,
+                C: MessageParts.create(this._chatItem.messageParts).element,
             }
         };
 

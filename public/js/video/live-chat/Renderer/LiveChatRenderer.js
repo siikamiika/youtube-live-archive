@@ -125,7 +125,7 @@ export default class LiveChatRenderer {
         for (const [_, {chatItem, banner}] of Object.entries(bannerMap)) {
             if (banner) { continue; }
 
-            const banner2 = new ChatBanner(
+            const banner2 = ChatBanner.create(
                 chatItem,
                 this._onChatBannerClick.bind(this),
                 this._onChatBannerCloseClick.bind(this)

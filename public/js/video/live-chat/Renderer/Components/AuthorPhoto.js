@@ -1,9 +1,9 @@
-import buildDom from '/js/helpers/build-dom.js';
+import Component from '/js/DomComponents/Component.js';
 
-export default class AuthorPhoto {
+export default class AuthorPhoto extends Component {
     constructor(url) {
+        super();
         this._url = url;
-        this.element = buildDom(this._render());
     }
 
     _render() {

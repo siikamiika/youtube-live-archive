@@ -1,9 +1,9 @@
-import buildDom from '/js/helpers/build-dom.js';
+import Component from '/js/DomComponents/Component.js';
 
-export default class MessageParts {
+export default class MessageParts extends Component {
     constructor(parts) {
+        super();
         this._parts = parts;
-        this.element = buildDom(this._render());
     }
 
     _render() {

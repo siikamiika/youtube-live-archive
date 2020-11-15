@@ -1,12 +1,12 @@
-import buildDom from '/js/helpers/build-dom.js';
+import Component from '/js/DomComponents/Component.js';
 import MessageParts from '../MessageParts.js';
 import AuthorPhoto from '../AuthorPhoto.js';
 import AuthorName from '../AuthorName.js';
 
-export default class ChatMessageNormal {
+export default class ChatMessageNormal extends Component {
     constructor(chatItem) {
+        super();
         this._chatItem = chatItem;
-        this.element = buildDom(this._render());
     }
 
     _render() {
@@ -16,10 +16,10 @@ export default class ChatMessageNormal {
             className: 'chat-message chat-message-normal',
             dataset: {id: this._chatItem.id, offset: this._chatItem.offset},
             C: [
-                (new AuthorPhoto(this._chatItem.authorPhotoUrl)).element,
+                AuthorPhoto.create(this._chatItem.authorPhotoUrl).element,
                 {E: 'span', className: 'chat-message-timestamp', C: this._formatOffsetTime(this._chatItem.offset)},
-                (new AuthorName(this._chatItem)).element,
-                {E: 'span', className: 'chat-message-body', C: (new MessageParts(this._chatItem.messageParts)).element},
+                AuthorName.create(this._chatItem).element,
+                {E: 'span', className: 'chat-message-body', C: MessageParts.create(this._chatItem.messageParts).element},
             ],
         };
     }

@@ -1,14 +1,14 @@
-import buildDom from '/js/helpers/build-dom.js';
+import Component from '/js/DomComponents/Component.js';
 import MessageParts from '../MessageParts.js';
 import AuthorPhoto from '../AuthorPhoto.js';
 import ChatMessage from '../Message/ChatMessage.js';
 import {convertArgbIntRgbaCss} from '/js/helpers/css.js';
 
-export default class ChatTickerNewMember {
+export default class ChatTickerNewMember extends Component {
     constructor(chatItem, onClick) {
+        super();
         this._chatItem = chatItem;
         this._onClick = onClick;
-        this.element = buildDom(this._render());
     }
 
     _render() {
@@ -32,12 +32,12 @@ export default class ChatTickerNewMember {
                             E: 'div',
                             className: 'chat-ticker chat-ticker-new-member',
                             C: [
-                                (new AuthorPhoto(this._chatItem.authorPhotoUrl)).element,
+                                AuthorPhoto.create(this._chatItem.authorPhotoUrl).element,
                                 {
                                     E: 'span',
                                     className: 'chat-ticker-member-text',
                                     style: {color: convertArgbIntRgbaCss(this._chatItem.textColor)},
-                                    C: (new MessageParts(this._chatItem.textParts)).element,
+                                    C: MessageParts.create(this._chatItem.textParts).element,
                                 },
                             ]
                         }

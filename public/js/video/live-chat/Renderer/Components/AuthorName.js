@@ -1,14 +1,14 @@
-import buildDom from '/js/helpers/build-dom.js';
+import Component from '/js/DomComponents/Component.js';
 import {convertArgbIntRgbaCss} from '/js/helpers/css.js';
 
-export default class AuthorName {
+export default class AuthorName extends Component {
     constructor({authorName, authorNameColor, authorChannelId, badges, type}) {
+        super();
         this._authorName = authorName;
         this._authorNameColor = authorNameColor;
         this._authorChannelId = authorChannelId;
         this._badges = badges;
         this._type = type;
-        this.element = buildDom(this._render());
     }
 
     _render() {

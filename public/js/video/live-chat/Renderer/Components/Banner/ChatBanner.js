@@ -1,13 +1,13 @@
-import buildDom from '/js/helpers/build-dom.js';
+import Component from '/js/DomComponents/Component.js';
 import MessageParts from '../MessageParts.js';
 import ChatMessage from '../Message/ChatMessage.js';
 
-export default class ChatBanner {
+export default class ChatBanner extends Component {
     constructor(chatItem, onClick, onCloseClick) {
+        super();
         this._chatItem = chatItem;
         this._onClick = onClick;
         this._onCloseClick = onCloseClick;
-        this.element = buildDom(this._render());
     }
 
     _render() {
@@ -23,7 +23,7 @@ export default class ChatBanner {
                     E: 'div',
                     className: 'chat-banner-header',
                     C: [
-                        (new MessageParts(this._chatItem.headerTextParts)).element,
+                        MessageParts.create(this._chatItem.headerTextParts).element,
                         {
                             E: 'div',
                             className: 'chat-banner-close-button',

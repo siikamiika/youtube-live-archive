@@ -1,12 +1,12 @@
-import buildDom from '/js/helpers/build-dom.js';
+import Component from '/js/DomComponents/Component.js';
 import MessageParts from '../MessageParts.js';
 import AuthorPhoto from '../AuthorPhoto.js';
 import AuthorName from '../AuthorName.js';
 
-export default class ChatNewMember {
+export default class ChatNewMember extends Component {
     constructor(chatItem) {
+        super();
         this._chatItem = chatItem;
-        this.element = buildDom(this._render());
     }
 
     _render() {
@@ -21,14 +21,14 @@ export default class ChatNewMember {
                     E: 'div',
                     className: 'chat-new-member-header',
                     C: [
-                        (new AuthorPhoto(this._chatItem.authorPhotoUrl)).element,
-                        (new AuthorName(this._chatItem)).element,
+                        AuthorPhoto.create(this._chatItem.authorPhotoUrl).element,
+                        AuthorName.create(this._chatItem).element,
                     ]
                 },
                 {
                     E: 'div',
                     className: 'chat-new-member-body',
-                    C: (new MessageParts(this._chatItem.messageParts)).element,
+                    C: MessageParts.create(this._chatItem.messageParts).element,
                 }
             ],
         };
