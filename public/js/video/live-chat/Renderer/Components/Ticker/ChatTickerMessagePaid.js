@@ -1,6 +1,6 @@
-import AuthorPhoto from './AuthorPhoto.js';
+import AuthorPhoto from '../AuthorPhoto.js';
 import {convertArgbIntRgbaCss} from '/js/helpers/css.js';
-import ChatMessage from './ChatMessage.js';
+import ChatMessage from '../Message/ChatMessage.js';
 
 export default class ChatTickerMessagePaid {
     constructor(chatItem, onClick) {

@@ -1,6 +1,6 @@
-import MessageParts from './MessageParts.js';
-import AuthorPhoto from './AuthorPhoto.js';
-import ChatMessage from './ChatMessage.js';
+import MessageParts from '../MessageParts.js';
+import AuthorPhoto from '../AuthorPhoto.js';
+import ChatMessage from '../Message/ChatMessage.js';
 import {convertArgbIntRgbaCss} from '/js/helpers/css.js';
 
 export default class ChatTickerNewMember {

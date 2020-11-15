@@ -1,6 +1,4 @@
 import MessageParts from './MessageParts.js';
-import AuthorPhoto from './AuthorPhoto.js';
-import AuthorName from './AuthorName.js';
 import ChatMessage from './ChatMessage.js';
 
 export default class ChatBanner {

@@ -1,6 +1,6 @@
-import MessageParts from './MessageParts.js';
-import AuthorPhoto from './AuthorPhoto.js';
-import AuthorName from './AuthorName.js';
+import MessageParts from '../MessageParts.js';
+import AuthorPhoto from '../AuthorPhoto.js';
+import AuthorName from '../AuthorName.js';
 
 export default class ChatMessageNormal {
     constructor(chatItem) {

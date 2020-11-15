@@ -1,6 +1,6 @@
-import AuthorPhoto from './AuthorPhoto.js';
+import AuthorPhoto from '../AuthorPhoto.js';
+import AuthorName from '../AuthorName.js';
 import {convertArgbIntRgbaCss} from '/js/helpers/css.js';
-import AuthorName from './AuthorName.js';
 
 export default class ChatStickerPaid {
     constructor(chatItem) {

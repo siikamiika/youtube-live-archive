@@ -1,7 +1,7 @@
 import buildDom from '/js/helpers/build-dom.js';
-import ChatMessage from './ChatMessage.js';
-import ChatTicker from './ChatTicker.js';
-import ChatBanner from './ChatBanner.js';
+import ChatMessage from './Components/Message/ChatMessage.js';
+import ChatTicker from './Components/Ticker/ChatTicker.js';
+import ChatBanner from './Components/Banner/ChatBanner.js';
 
 export default class LiveChatRenderer {
     constructor(chatContainer, videoElement, getPreviousChatMessagesReverse) {
