@@ -1,3 +1,4 @@
+import buildDom from '/js/helpers/build-dom.js';
 import MessageParts from '../MessageParts.js';
 import AuthorPhoto from '../AuthorPhoto.js';
 import AuthorName from '../AuthorName.js';
@@ -5,19 +6,20 @@ import AuthorName from '../AuthorName.js';
 export default class ChatMessageNormal {
     constructor(chatItem) {
         this._chatItem = chatItem;
+        this.element = buildDom(this._render());
     }
 
-    render() {
+    _render() {
         if (this._chatItem.type !== 'CHAT_MESSAGE_NORMAL') { throw new Error('Invalid type: ' + this._chatItem.type); }
         return {
             E: 'div',
             className: 'chat-message chat-message-normal',
             dataset: {id: this._chatItem.id, offset: this._chatItem.offset},
             C: [
-                (new AuthorPhoto(this._chatItem.authorPhotoUrl)).render(),
+                (new AuthorPhoto(this._chatItem.authorPhotoUrl)).element,
                 {E: 'span', className: 'chat-message-timestamp', C: this._formatOffsetTime(this._chatItem.offset)},
-                (new AuthorName(this._chatItem)).render(),
-                {E: 'span', className: 'chat-message-body', C: (new MessageParts(this._chatItem.messageParts)).render()},
+                (new AuthorName(this._chatItem)).element,
+                {E: 'span', className: 'chat-message-body', C: (new MessageParts(this._chatItem.messageParts)).element},
             ],
         };
     }

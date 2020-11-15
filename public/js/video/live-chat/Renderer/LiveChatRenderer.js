@@ -1,4 +1,3 @@
-import buildDom from '/js/helpers/build-dom.js';
 import ChatMessage from './Components/Message/ChatMessage.js';
 import ChatTicker from './Components/Ticker/ChatTicker.js';
 import ChatBanner from './Components/Banner/ChatBanner.js';
@@ -35,9 +34,7 @@ export default class LiveChatRenderer {
             }
 
             const chatMessage = ChatMessage.create(chatItem);
-            if (!chatMessage) { continue; }
-            const chatMessageElement = buildDom(chatMessage.render());
-            this._chatElement.appendChild(chatMessageElement);
+            this._chatElement.appendChild(chatMessage.element);
 
             if (this._wasScrolledBottom) {
                 this._clearLogUntil(firstChatItem.id);
@@ -69,9 +66,7 @@ export default class LiveChatRenderer {
         const eventsReverse = this._getPreviousChatMessagesReverse(firstOffset, 100, firstId);
         for (const chatItem of eventsReverse) {
             const chatMessage = ChatMessage.create(chatItem);
-            if (!chatMessage) { continue; }
-            const chatMessageElement = buildDom(chatMessage.render());
-            containerFragment.prepend(chatMessageElement);
+            containerFragment.prepend(chatMessage.element);
         }
 
         const topElement = containerFragment.firstChild;
@@ -106,10 +101,8 @@ export default class LiveChatRenderer {
             if (ticker) { continue; }
 
             const ticker2 = ChatTicker.create(chatItem, this._onTickerProgressClick.bind(this));
-            if (!ticker2) { continue; }
-            const tickerElement = buildDom(ticker2.render());
-            this._updateTickerProgress(tickerElement, chatItem);
-            this._insertTicker(tickerElement);
+            this._updateTickerProgress(ticker2.element, chatItem);
+            this._insertTicker(ticker2.element);
         }
     }
 
@@ -137,8 +130,7 @@ export default class LiveChatRenderer {
                 this._onChatBannerClick.bind(this),
                 this._onChatBannerCloseClick.bind(this)
             );
-            const bannerElement = buildDom(banner2.render());
-            this._bannerElement.appendChild(bannerElement);
+            this._bannerElement.appendChild(banner2.element);
         }
     }
 

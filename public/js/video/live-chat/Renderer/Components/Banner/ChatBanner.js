@@ -1,14 +1,16 @@
-import MessageParts from './MessageParts.js';
-import ChatMessage from './ChatMessage.js';
+import buildDom from '/js/helpers/build-dom.js';
+import MessageParts from '../MessageParts.js';
+import ChatMessage from '../Message/ChatMessage.js';
 
 export default class ChatBanner {
     constructor(chatItem, onClick, onCloseClick) {
         this._chatItem = chatItem;
         this._onClick = onClick;
         this._onCloseClick = onCloseClick;
+        this.element = buildDom(this._render());
     }
 
-    render() {
+    _render() {
         if (this._chatItem.type !== 'CHAT_BANNER') { throw new Error('Invalid type: ' + this._chatItem.type); }
 
         return {
@@ -21,7 +23,7 @@ export default class ChatBanner {
                     E: 'div',
                     className: 'chat-banner-header',
                     C: [
-                        ...(new MessageParts(this._chatItem.headerTextParts)).render(),
+                        (new MessageParts(this._chatItem.headerTextParts)).element,
                         {
                             E: 'div',
                             className: 'chat-banner-close-button',
@@ -32,7 +34,7 @@ export default class ChatBanner {
                 {
                     E: 'div',
                     className: 'chat-banner-expanded-message-wrapper',
-                    C: ChatMessage.create(this._chatItem.expandedMessage).render(),
+                    C: ChatMessage.create(this._chatItem.expandedMessage).element,
                 }
             ]
         };

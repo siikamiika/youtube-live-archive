@@ -1,3 +1,4 @@
+import buildDom from '/js/helpers/build-dom.js';
 import MessageParts from '../MessageParts.js';
 import AuthorPhoto from '../AuthorPhoto.js';
 import ChatMessage from '../Message/ChatMessage.js';
@@ -7,9 +8,10 @@ export default class ChatTickerNewMember {
     constructor(chatItem, onClick) {
         this._chatItem = chatItem;
         this._onClick = onClick;
+        this.element = buildDom(this._render());
     }
 
-    render() {
+    _render() {
         if (this._chatItem.type !== 'CHAT_TICKER_NEW_MEMBER') { throw new Error('Invalid type: ' + this._chatItem.type); }
 
         return {
@@ -30,12 +32,12 @@ export default class ChatTickerNewMember {
                             E: 'div',
                             className: 'chat-ticker chat-ticker-new-member',
                             C: [
-                                (new AuthorPhoto(this._chatItem.authorPhotoUrl)).render(),
+                                (new AuthorPhoto(this._chatItem.authorPhotoUrl)).element,
                                 {
                                     E: 'span',
                                     className: 'chat-ticker-member-text',
                                     style: {color: convertArgbIntRgbaCss(this._chatItem.textColor)},
-                                    C: (new MessageParts(this._chatItem.textParts)).render()
+                                    C: (new MessageParts(this._chatItem.textParts)).element,
                                 },
                             ]
                         }
@@ -45,7 +47,7 @@ export default class ChatTickerNewMember {
                     E: 'div',
                     style: {display: 'none'},
                     className: 'chat-ticker-expanded-message-wrapper',
-                    C: ChatMessage.create(this._chatItem.expandedMessage).render(),
+                    C: ChatMessage.create(this._chatItem.expandedMessage).element,
                 }
             ]
         };

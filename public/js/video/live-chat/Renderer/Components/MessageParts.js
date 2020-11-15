@@ -1,9 +1,12 @@
+import buildDom from '/js/helpers/build-dom.js';
+
 export default class MessageParts {
     constructor(parts) {
         this._parts = parts;
+        this.element = buildDom(this._render());
     }
 
-    render() {
+    _render() {
         const output = [];
         for (const part of this._parts) {
             if (part.text) {
@@ -12,7 +15,8 @@ export default class MessageParts {
                 output.push(this._renderEmoji(part));
             }
         }
-        return output;
+        // TODO fragment
+        return {E: 'span', C: output};
     }
 
     _renderText(part) {

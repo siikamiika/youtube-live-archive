@@ -1,3 +1,4 @@
+import buildDom from '/js/helpers/build-dom.js';
 import {convertArgbIntRgbaCss} from '/js/helpers/css.js';
 
 export default class AuthorName {
@@ -7,9 +8,10 @@ export default class AuthorName {
         this._authorChannelId = authorChannelId;
         this._badges = badges;
         this._type = type;
+        this.element = buildDom(this._render());
     }
 
-    render() {
+    _render() {
         let isSponsor = false;
         let sponsorDuration = null;
         let sponsorUrl = null;

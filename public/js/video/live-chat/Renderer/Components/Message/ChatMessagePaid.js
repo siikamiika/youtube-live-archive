@@ -1,3 +1,4 @@
+import buildDom from '/js/helpers/build-dom.js';
 import MessageParts from '../MessageParts.js';
 import AuthorPhoto from '../AuthorPhoto.js';
 import AuthorName from '../AuthorName.js';
@@ -6,9 +7,10 @@ import {convertArgbIntRgbaCss} from '/js/helpers/css.js';
 export default class ChatMessagePaid {
     constructor(chatItem) {
         this._chatItem = chatItem;
+        this.element = buildDom(this._render());
     }
 
-    render() {
+    _render() {
         if (this._chatItem.type !== 'CHAT_MESSAGE_PAID') { throw new Error('Invalid type: ' + this._chatItem.type); }
 
         const header = {
@@ -22,8 +24,8 @@ export default class ChatMessagePaid {
                 {
                     E: 'div',
                     C: [
-                        (new AuthorPhoto(this._chatItem.authorPhotoUrl)).render(),
-                        (new AuthorName(this._chatItem)).render(),
+                        (new AuthorPhoto(this._chatItem.authorPhotoUrl)).element,
+                        (new AuthorName(this._chatItem)).element,
                     ]
                 },
                 {
@@ -44,7 +46,7 @@ export default class ChatMessagePaid {
                 E: 'span',
                 className: 'chat-message-body',
                 style: {color: convertArgbIntRgbaCss(this._chatItem.bodyFgColor)},
-                C: (new MessageParts(this._chatItem.messageParts)).render()
+                C: (new MessageParts(this._chatItem.messageParts)).element,
             }
         };
 

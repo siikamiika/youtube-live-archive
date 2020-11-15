@@ -1,3 +1,4 @@
+import buildDom from '/js/helpers/build-dom.js';
 import AuthorPhoto from '../AuthorPhoto.js';
 import {convertArgbIntRgbaCss} from '/js/helpers/css.js';
 import ChatMessage from '../Message/ChatMessage.js';
@@ -6,9 +7,10 @@ export default class ChatTickerMessagePaid {
     constructor(chatItem, onClick) {
         this._chatItem = chatItem;
         this._onClick = onClick;
+        this.element = buildDom(this._render());
     }
 
-    render() {
+    _render() {
         if (this._chatItem.type !== 'CHAT_TICKER_MESSAGE_PAID') { throw new Error('Invalid type: ' + this._chatItem.type); }
 
         return {
@@ -29,7 +31,7 @@ export default class ChatTickerMessagePaid {
                             E: 'div',
                             className: 'chat-ticker chat-ticker-message-paid',
                             C: [
-                                (new AuthorPhoto(this._chatItem.authorPhotoUrl)).render(),
+                                (new AuthorPhoto(this._chatItem.authorPhotoUrl)).element,
                                 {
                                     E: 'span',
                                     className: 'chat-ticker-paid-amount',
@@ -44,7 +46,7 @@ export default class ChatTickerMessagePaid {
                     E: 'div',
                     style: {display: 'none'},
                     className: 'chat-ticker-expanded-message-wrapper',
-                    C: ChatMessage.create(this._chatItem.expandedMessage).render(),
+                    C: ChatMessage.create(this._chatItem.expandedMessage).element,
                 }
             ]
         };

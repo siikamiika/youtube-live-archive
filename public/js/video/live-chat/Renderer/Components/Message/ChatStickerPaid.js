@@ -1,3 +1,4 @@
+import buildDom from '/js/helpers/build-dom.js';
 import AuthorPhoto from '../AuthorPhoto.js';
 import AuthorName from '../AuthorName.js';
 import {convertArgbIntRgbaCss} from '/js/helpers/css.js';
@@ -5,9 +6,10 @@ import {convertArgbIntRgbaCss} from '/js/helpers/css.js';
 export default class ChatStickerPaid {
     constructor(chatItem) {
         this._chatItem = chatItem;
+        this.element = buildDom(this._render());
     }
 
-    render() {
+    _render() {
         if (this._chatItem.type !== 'CHAT_STICKER_PAID') { throw new Error('Invalid type: ' + this._chatItem.type); }
 
         return {
@@ -24,8 +26,8 @@ export default class ChatStickerPaid {
                             E: 'div',
                             style: {color: convertArgbIntRgbaCss(this._chatItem.authorNameColor)},
                             C: [
-                                (new AuthorPhoto(this._chatItem.authorPhotoUrl)).render(),
-                                (new AuthorName(this._chatItem)).render(),
+                                (new AuthorPhoto(this._chatItem.authorPhotoUrl)).element,
+                                (new AuthorName(this._chatItem)).element,
                             ]
                         },
                         {

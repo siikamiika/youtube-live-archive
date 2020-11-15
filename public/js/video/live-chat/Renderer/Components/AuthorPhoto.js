@@ -1,9 +1,12 @@
+import buildDom from '/js/helpers/build-dom.js';
+
 export default class AuthorPhoto {
     constructor(url) {
         this._url = url;
+        this.element = buildDom(this._render());
     }
 
-    render() {
+    _render() {
         return {
             E: 'div',
             className: 'chat-author-photo-wrapper',
