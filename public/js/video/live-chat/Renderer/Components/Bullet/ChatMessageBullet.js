@@ -11,20 +11,19 @@ export default class ChatMessageBullet extends Component {
 
     animate() {
         if (!this._animation) {
-            const {width} = this.element.getBoundingClientRect();
-            const containerElement = this.element.closest('#danmaku-container');
-            const {width: containerWidth} = containerElement.getBoundingClientRect();
-            const xFrom = containerWidth - width * this._scale;
-            const xTo = -width * this._scale;
+            const elementWidth = this._getElementWidth() * this._scale;
+            const danmakuWidth = this._getDanmakuWidth();
+            const xFrom = danmakuWidth
+            const xTo = -elementWidth;
 
-            const videoElement = containerElement.parentElement.querySelector('#video');
+            const videoElement = document.querySelector('#video');
             const currentTime = videoElement.currentTime * 1000;
             const delay = this._chatItem.offset - currentTime;
 
             this._animation = this.element.animate(
                 [
-                    {transform: `scale(${this._scale}) translateX(${xFrom}px)`},
-                    {transform: `scale(${this._scale}) translateX(${xTo}px)`},
+                    {transform: `translateX(${xFrom * 100}vw) scale(${this._scale})`},
+                    {transform: `translateX(${xTo * 100}vw) scale(${this._scale})`},
                 ],
                 {fill: 'both', duration: 8000, delay}
             );
@@ -38,7 +37,7 @@ export default class ChatMessageBullet extends Component {
     }
 
     _render() {
-        const position = Math.floor(Math.random() * 10) * 60;
+        const position = Math.floor(Math.random() * 10) * this._getDanmakuHeight() / 10;
 
         let textShadow = '';
         if (this._chatItem.type === 'CHAT_MESSAGE_NORMAL') {
@@ -50,10 +49,22 @@ export default class ChatMessageBullet extends Component {
             dataset: {id: this._chatItem.id, offset: this._chatItem.offset},
             className: 'chat-bullet',
             style: {
-                top: position + 'px',
+                top: position * 100 + 'vh',
                 textShadow,
             },
             C: ChatMessage.create(this._chatItem).element,
         };
+    }
+
+    _getDanmakuWidth() {
+        return document.querySelector('#danmaku-container').clientWidth / document.documentElement.clientWidth;
+    }
+
+    _getDanmakuHeight() {
+        return document.querySelector('#danmaku-container').clientHeight / document.documentElement.clientHeight;
+    }
+
+    _getElementWidth() {
+        return this.element.getBoundingClientRect().width / document.documentElement.clientWidth;
     }
 }
