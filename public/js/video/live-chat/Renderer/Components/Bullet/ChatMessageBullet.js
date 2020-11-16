@@ -2,10 +2,11 @@ import Component from '/js/DomComponents/Component.js';
 import ChatMessage from '../Message/ChatMessage.js';
 
 export default class ChatMessageBullet extends Component {
-    constructor(chatItem) {
+    constructor(chatItem, scale=1.5) {
         super();
         this._chatItem = chatItem;
         this._animation = null;
+        this._scale = scale;
     }
 
     animate() {
@@ -13,11 +14,19 @@ export default class ChatMessageBullet extends Component {
             const {width} = this.element.getBoundingClientRect();
             const containerElement = this.element.closest('#danmaku-container');
             const {width: containerWidth} = containerElement.getBoundingClientRect();
-            const xFrom = containerWidth + width;
-            const xTo = -width;
+            const xFrom = containerWidth - width * this._scale;
+            const xTo = -width * this._scale;
+
+            const videoElement = containerElement.parentElement.querySelector('#video');
+            const currentTime = videoElement.currentTime * 1000;
+            const delay = this._chatItem.offset - currentTime;
+
             this._animation = this.element.animate(
-                [{transform: `translateX(${xFrom}px) scale(1.5)`}, {transform: `translateX(${xTo}px) scale(1.5)`}],
-                {fill: 'both', duration: 8000}
+                [
+                    {transform: `scale(${this._scale}) translateX(${xFrom}px)`},
+                    {transform: `scale(${this._scale}) translateX(${xTo}px)`},
+                ],
+                {fill: 'both', duration: 8000, delay}
             );
         }
         this._animation.play();
