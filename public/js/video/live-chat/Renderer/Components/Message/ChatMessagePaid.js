@@ -5,9 +5,12 @@ import AuthorName from '../AuthorName.js';
 import {convertArgbIntRgbaCss} from '/js/helpers/css.js';
 
 export default class ChatMessagePaid extends Component {
-    constructor(chatItem) {
+    constructor(chatItem, settings={}) {
         super();
         this._chatItem = chatItem;
+        this._settings = {
+            bgOpacity: settings.bgOpacity ?? 0xff << 24,
+        };
     }
 
     _render() {
@@ -18,7 +21,7 @@ export default class ChatMessagePaid extends Component {
             className: 'chat-message-paid-header',
             style: {
                 color: convertArgbIntRgbaCss(this._chatItem.headerFgColor),
-                backgroundColor: convertArgbIntRgbaCss(this._chatItem.headerBgColor),
+                backgroundColor: convertArgbIntRgbaCss(this._chatItem.headerBgColor & 0xffffff | this._settings.bgOpacity),
             },
             C: [
                 {
@@ -40,7 +43,7 @@ export default class ChatMessagePaid extends Component {
             className: 'chat-message-paid-body',
             style: {
                 color: convertArgbIntRgbaCss(this._chatItem.bodyFgColor),
-                backgroundColor: convertArgbIntRgbaCss(this._chatItem.bodyBgColor),
+                backgroundColor: convertArgbIntRgbaCss(this._chatItem.bodyBgColor & 0xffffff | this._settings.bgOpacity),
             },
             C: {
                 E: 'span',

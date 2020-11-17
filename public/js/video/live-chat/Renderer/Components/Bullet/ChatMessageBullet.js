@@ -42,20 +42,21 @@ export default class ChatMessageBullet extends Component {
     _render() {
         const position = Math.floor(Math.random() * 10) * this._getDanmakuHeight() / 10;
 
-        let textShadow = '';
+        const settings = {};
         if (this._chatItem.type === 'CHAT_MESSAGE_NORMAL') {
-            textShadow = `1px 1px 0px black`;
+            settings.bodyTextShadow = '-1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black';
+            settings.bodyFontWeight = 'bold';
+            settings.authorOpacity = 0.5;
+        } else {
+            settings.bgOpacity = 0xbf << 24;
         }
 
         return {
             E: 'div',
             dataset: {id: this._chatItem.id, offset: this._chatItem.offset},
             className: 'chat-bullet',
-            style: {
-                top: position * 100 + 'vh',
-                textShadow,
-            },
-            C: ChatMessage.create(this._chatItem).element,
+            style: {top: position * 100 + 'vh'},
+            C: ChatMessage.create(this._chatItem, settings).element,
         };
     }
 

@@ -4,9 +4,12 @@ import AuthorName from '../AuthorName.js';
 import {convertArgbIntRgbaCss} from '/js/helpers/css.js';
 
 export default class ChatStickerPaid extends Component {
-    constructor(chatItem) {
+    constructor(chatItem, settings={}) {
         super();
         this._chatItem = chatItem;
+        this._settings = {
+            bgOpacity: settings.bgOpacity ?? 0xff << 24,
+        };
     }
 
     _render() {
@@ -15,7 +18,7 @@ export default class ChatStickerPaid extends Component {
         return {
             E: 'div',
             className: 'chat-sticker-paid',
-            style: {backgroundColor: convertArgbIntRgbaCss(this._chatItem.bgColor)},
+            style: {backgroundColor: convertArgbIntRgbaCss(this._chatItem.bgColor & 0xffffff | this._settings.bgOpacity)},
             dataset: {id: this._chatItem.id, offset: this._chatItem.offset},
             C: [
                 {

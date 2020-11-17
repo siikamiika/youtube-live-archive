@@ -4,9 +4,14 @@ import AuthorPhoto from '../AuthorPhoto.js';
 import AuthorName from '../AuthorName.js';
 
 export default class ChatMessageNormal extends Component {
-    constructor(chatItem) {
+    constructor(chatItem, settings={}) {
         super();
         this._chatItem = chatItem;
+        this._settings = {
+            bodyTextShadow: settings.bodyTextShadow ?? '',
+            bodyFontWeight: settings.bodyFontWeight ?? null,
+            authorOpacity: settings.authorOpacity ?? null,
+        };
     }
 
     _render() {
@@ -16,10 +21,15 @@ export default class ChatMessageNormal extends Component {
             className: 'chat-message chat-message-normal',
             dataset: {id: this._chatItem.id, offset: this._chatItem.offset},
             C: [
-                AuthorPhoto.create(this._chatItem.authorPhotoUrl).element,
-                {E: 'span', className: 'chat-message-timestamp', C: this._formatOffsetTime(this._chatItem.offset)},
-                AuthorName.create(this._chatItem).element,
-                {E: 'span', className: 'chat-message-body', C: MessageParts.create(this._chatItem.messageParts).element},
+                AuthorPhoto.create(this._chatItem.authorPhotoUrl, {opacity: this._settings.authorOpacity}).element,
+                {E: 'span', style: {opacity: this._settings.authorOpacity ?? 1}, className: 'chat-message-timestamp', C: this._formatOffsetTime(this._chatItem.offset)},
+                AuthorName.create(this._chatItem, {opacity: this._settings.authorOpacity ?? 1}).element,
+                {
+                    E: 'span',
+                    className: 'chat-message-body',
+                    style: {textShadow: this._settings.bodyTextShadow, fontWeight: this._settings.bodyFontWeight},
+                    C: MessageParts.create(this._chatItem.messageParts).element
+                },
             ],
         };
     }

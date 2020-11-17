@@ -2,13 +2,15 @@ import Component from '/js/DomComponents/Component.js';
 import {convertArgbIntRgbaCss} from '/js/helpers/css.js';
 
 export default class AuthorName extends Component {
-    constructor({authorName, authorNameColor, authorChannelId, badges, type}) {
+    constructor({authorName, authorNameColor, authorChannelId, badges}, settings={}) {
         super();
         this._authorName = authorName;
         this._authorNameColor = authorNameColor;
         this._authorChannelId = authorChannelId;
         this._badges = badges;
-        this._type = type;
+        this._settings = {
+            opacity: settings.opacity ?? 1,
+        };
     }
 
     _render() {
@@ -62,6 +64,7 @@ export default class AuthorName extends Component {
         const authorLink = {
             E: 'a',
             className: classNames.join(' '),
+            style: {opacity: this._settings.opacity},
             href: `https://www.youtube.com/channel/${encodeURIComponent(this._authorChannelId)}`,
             rel: 'noopener noreferrer',
             target: '_blank',
@@ -74,9 +77,8 @@ export default class AuthorName extends Component {
                 : `Member (${sponsorDuration} month${sponsorDuration === 1 ? '' : 's'})`;
         }
 
-        // TODO move to ChatMessagePaid
-        if (this._type === 'CHAT_MESSAGE_PAID') {
-            authorLink.style = {color: convertArgbIntRgbaCss(this._authorNameColor)};
+        if (this._authorNameColor) {
+            authorLink.style.color = convertArgbIntRgbaCss(this._authorNameColor);
         }
 
         return authorLink;
