@@ -44,9 +44,9 @@ export default class ChatMessageBullet extends Component {
 
         const settings = {};
         if (this._chatItem.type === 'CHAT_MESSAGE_NORMAL') {
-            settings.bodyTextShadow = '-1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black';
-            settings.bodyFontWeight = 'bold';
-            settings.authorOpacity = 0.5;
+            settings.textShadow = '-1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black';
+            settings.fontWeight = 'bold';
+            settings.authorOpacity = 0.26667;
         } else {
             settings.bgOpacity = 0xbf << 24;
         }

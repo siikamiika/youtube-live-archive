@@ -10,6 +10,7 @@ export default class AuthorName extends Component {
         this._badges = badges;
         this._settings = {
             opacity: settings.opacity ?? 1,
+            textStyle: settings.textStyle ?? {},
         };
     }
 
@@ -61,10 +62,15 @@ export default class AuthorName extends Component {
             classNames.push('chat-message-author-verified');
         }
 
+        const style = Object.assign({}, this._settings.textStyle);
+        style.opacity = isOwner || isModerator || isVerified ? 1 : this._settings.opacity;
+        if (this._authorNameColor) {
+            style.color = convertArgbIntRgbaCss(this._authorNameColor);
+        }
         const authorLink = {
             E: 'a',
             className: classNames.join(' '),
-            style: {opacity: this._settings.opacity},
+            style,
             href: `https://www.youtube.com/channel/${encodeURIComponent(this._authorChannelId)}`,
             rel: 'noopener noreferrer',
             target: '_blank',
@@ -75,10 +81,6 @@ export default class AuthorName extends Component {
             authorLink.title = sponsorDuration === 0
                 ? 'New member'
                 : `Member (${sponsorDuration} month${sponsorDuration === 1 ? '' : 's'})`;
-        }
-
-        if (this._authorNameColor) {
-            authorLink.style.color = convertArgbIntRgbaCss(this._authorNameColor);
         }
 
         return authorLink;
