@@ -7,6 +7,7 @@ export default class DanmakuRenderer {
 
         this._videoElement.addEventListener('playing', this._onVideoPlaying.bind(this));
         this._videoElement.addEventListener('pause', this._onVideoPause.bind(this));
+        window.addEventListener('resize', this._onWindowResize.bind(this));
     }
 
     renderBullets(events) {
@@ -56,6 +57,16 @@ export default class DanmakuRenderer {
         for (const chatBulletElement of this._getBullets()) {
             const chatBullet = ChatMessageBullet.createFromElement(chatBulletElement);
             chatBullet.pauseAnimation();
+        }
+    }
+
+    _onWindowResize() {
+        for (const chatBulletElement of this._getBullets()) {
+            const chatBullet = ChatMessageBullet.createFromElement(chatBulletElement);
+            chatBullet.animate();
+            if (this._videoElement.paused) {
+                chatBullet.pauseAnimation();
+            }
         }
     }
 

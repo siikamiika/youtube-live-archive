@@ -10,24 +10,27 @@ export default class ChatMessageBullet extends Component {
     }
 
     animate() {
-        if (!this._animation) {
-            const elementWidth = this._getElementWidth() * this._scale;
-            const danmakuWidth = this._getDanmakuWidth();
-            const xFrom = danmakuWidth
-            const xTo = -elementWidth;
-
-            const videoElement = document.querySelector('#video');
-            const currentTime = videoElement.currentTime * 1000;
-            const delay = this._chatItem.offset - currentTime;
-
-            this._animation = this.element.animate(
-                [
-                    {transform: `translateX(${xFrom * 100}vw) scale(${this._scale})`},
-                    {transform: `translateX(${xTo * 100}vw) scale(${this._scale})`},
-                ],
-                {fill: 'both', duration: 8000, delay}
-            );
+        if (this._animation) {
+            this._animation.cancel();
         }
+
+        const elementWidth = this._getElementWidth() * this._scale;
+        const danmakuWidth = this._getDanmakuWidth();
+        const xFrom = danmakuWidth
+        const xTo = -elementWidth;
+
+        const videoElement = document.querySelector('#video');
+        const currentTime = videoElement.currentTime * 1000;
+        const delay = this._chatItem.offset - currentTime;
+
+        this._animation = this.element.animate(
+            [
+                {transform: `translateX(${xFrom * 100}vw) scale(${this._scale})`},
+                {transform: `translateX(${xTo * 100}vw) scale(${this._scale})`},
+            ],
+            {fill: 'both', duration: 8000, delay}
+        );
+
         this._animation.play();
     }
 
