@@ -67,6 +67,10 @@ export default class AuthorName extends Component {
         if (this._authorNameColor) {
             style.color = convertArgbIntRgbaCss(this._authorNameColor);
         }
+        if (isOwner) {
+            style.fontWeight = '';
+            style.textShadow = '';
+        }
         const authorLink = {
             E: 'a',
             className: classNames.join(' '),
