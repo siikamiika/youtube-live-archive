@@ -2,12 +2,9 @@ import Component from '/js/DomComponents/Component.js';
 import {convertArgbIntRgbaCss} from '/js/helpers/css.js';
 
 export default class AuthorName extends Component {
-    constructor({authorName, authorNameColor, authorChannelId, badges}, settings={}) {
+    constructor(chatItem, settings={}) {
         super();
-        this._authorName = authorName;
-        this._authorNameColor = authorNameColor;
-        this._authorChannelId = authorChannelId;
-        this._badges = badges;
+        this._chatItem = chatItem;
         this._settings = {
             opacity: settings.opacity ?? 1,
             textStyle: settings.textStyle ?? {},
@@ -22,7 +19,7 @@ export default class AuthorName extends Component {
         let isModerator = false;
         let isVerified = false;
 
-        for (const badge of this._badges) {
+        for (const badge of this._chatItem.badges) {
             if (badge.type === 'sponsor') {
                 isSponsor = true;
                 sponsorDuration = badge.duration;
@@ -36,7 +33,7 @@ export default class AuthorName extends Component {
             }
         }
 
-        const linkContents = [this._authorName];
+        const linkContents = [this._chatItem.authorName];
 
         const classNames = ['chat-message-author'];
         if (isSponsor) {
@@ -64,8 +61,8 @@ export default class AuthorName extends Component {
 
         const style = Object.assign({}, this._settings.textStyle);
         style.opacity = isOwner || isModerator || isVerified ? 1 : this._settings.opacity;
-        if (this._authorNameColor) {
-            style.color = convertArgbIntRgbaCss(this._authorNameColor);
+        if (this._chatItem.authorNameColor) {
+            style.color = convertArgbIntRgbaCss(this._chatItem.authorNameColor);
         }
         if (isOwner) {
             style.fontWeight = '';
@@ -75,7 +72,7 @@ export default class AuthorName extends Component {
             E: 'a',
             className: classNames.join(' '),
             style,
-            href: `https://www.youtube.com/channel/${encodeURIComponent(this._authorChannelId)}`,
+            href: `https://www.youtube.com/channel/${encodeURIComponent(this._chatItem.authorChannelId)}`,
             rel: 'noopener noreferrer',
             target: '_blank',
             C: linkContents,

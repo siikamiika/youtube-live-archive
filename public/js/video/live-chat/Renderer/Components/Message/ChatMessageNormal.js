@@ -22,13 +22,24 @@ export default class ChatMessageNormal extends Component {
             className: 'chat-message chat-message-normal',
             dataset: {id: this._chatItem.id, offset: this._chatItem.offset},
             C: [
-                AuthorPhoto.create(this._chatItem.authorPhotoUrl, {opacity: this._settings.authorOpacity}).element,
-                {E: 'span', style: {opacity: this._settings.authorOpacity ?? 1}, className: 'chat-message-timestamp', C: this._formatOffsetTime(this._chatItem.offset)},
-                AuthorName.create(this._chatItem, {opacity: this._settings.authorOpacity ?? 1, textStyle}).element,
+                AuthorPhoto.create(
+                    this._chatItem.authorPhotoUrl,
+                    {opacity: this._settings.authorOpacity}
+                ).element,
+                {
+                    E: 'span',
+                    style: {opacity: this._settings.authorOpacity ?? 1},
+                    className: 'chat-message-timestamp',
+                    C: this._formatOffsetTime(this._chatItem.offset)
+                },
+                AuthorName.create(
+                    this._chatItem,
+                    {opacity: this._settings.authorOpacity ?? 1, textStyle}
+                ).element,
                 {
                     E: 'span',
                     className: 'chat-message-body',
-                    style: {...textStyle},
+                    style: textStyle,
                     C: MessageParts.create(this._chatItem.messageParts).element
                 },
             ],
