@@ -49,7 +49,7 @@ export default class ChatMessageBullet extends Component {
         if (this._chatItem.type === 'CHAT_MESSAGE_NORMAL') {
             settings.textShadow = '-1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black';
             settings.fontWeight = 'bold';
-            settings.authorOpacity = 0.26667;
+            settings.authorOpacity = 0.4;
         } else {
             settings.bgOpacity = 0xbf << 24;
         }
