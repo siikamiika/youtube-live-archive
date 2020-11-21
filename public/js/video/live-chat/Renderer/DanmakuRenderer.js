@@ -1,76 +1,48 @@
 import ChatMessageBullet from './Components/Bullet/ChatMessageBullet.js';
+import DanmakuLayer from './DanmakuLayer.js';
 
 export default class DanmakuRenderer {
     constructor(danmakuContainer, videoElement) {
-        this._danmakuContainer = danmakuContainer;
         this._videoElement = videoElement;
 
+        this._danmakuLayer = new DanmakuLayer(
+            danmakuContainer,
+            () => this._videoElement.currentTime * 1000,
+            8000,
+            10
+        );
+
         this._videoElement.addEventListener('playing', this._onVideoPlaying.bind(this));
+        this._videoElement.addEventListener('seeking', this._onVideoSeeking.bind(this));
         this._videoElement.addEventListener('pause', this._onVideoPause.bind(this));
         window.addEventListener('resize', this._onWindowResize.bind(this));
     }
 
     renderBullets(events) {
-        let firstChatItem = null;
-        let lastId = null;
+        this._danmakuLayer.garbageCollect();
         for (const chatItem of events) {
-            if (!firstChatItem) {
-                firstChatItem = chatItem;
-                lastId = this._danmakuContainer.lastChild?.dataset?.id;
-            }
-            if (lastId) {
-                if (lastId === chatItem.id) {
-                    lastId = null;
-                }
-                continue;
-            }
-
-            const chatBullet = ChatMessageBullet.create(chatItem);
-            this._danmakuContainer.appendChild(chatBullet.element);
-            chatBullet.animate();
-
-            this._clearLogUntil(firstChatItem.id);
-        }
-
-        // out of sync, clear everything and start fresh
-        // happens when seeking back or too much forward
-        if (lastId) {
-            this._clearLogUntil(null);
-        }
-    }
-
-    _clearLogUntil(messageId) {
-        for (const chatBulletElement of this._getBullets()) {
-            if (chatBulletElement.dataset.id === messageId) { break; }
-            this._danmakuContainer.removeChild(chatBulletElement);
+            if (this._danmakuLayer.hasBullet(chatItem.id)) { continue; }
+            const bullet = ChatMessageBullet.create(chatItem, 1.5);
+            this._danmakuLayer.addBullet(bullet);
         }
     }
 
     _onVideoPlaying() {
-        for (const chatBulletElement of this._getBullets()) {
-            const chatBullet = ChatMessageBullet.createFromElement(chatBulletElement);
-            chatBullet.animate();
-        }
+        this._danmakuLayer.play();
+    }
+
+    _onVideoSeeking() {
+        this._danmakuLayer.garbageCollect(false);
     }
 
     _onVideoPause() {
-        for (const chatBulletElement of this._getBullets()) {
-            const chatBullet = ChatMessageBullet.createFromElement(chatBulletElement);
-            chatBullet.pauseAnimation();
-        }
+        this._danmakuLayer.pause();
     }
 
     _onWindowResize() {
-        for (const chatBulletElement of this._getBullets()) {
-            const chatBullet = ChatMessageBullet.createFromElement(chatBulletElement);
-            chatBullet.animate();
-            if (this._videoElement.paused) {
-                chatBullet.pauseAnimation();
-            }
+        this._danmakuLayer.play();
+        if (this._videoElement.paused) {
+            this._danmakuLayer.pause();
         }
-    }
-
-    _getBullets() {
-        return this._danmakuContainer.querySelectorAll('.chat-bullet');
     }
 }
