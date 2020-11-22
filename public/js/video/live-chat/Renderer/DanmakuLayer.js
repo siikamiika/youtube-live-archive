@@ -80,7 +80,7 @@ export default class DanmakuLayer {
     _animateBullet(bullet, laneIdx) {
         const yPos = this._laneYPos(laneIdx);
         const containerWidth = this._container.clientWidth;
-        const delay = bullet.offset - this._getCurrentTime();
+        const delay = this._bulletDelay(bullet);
         const duration = this._duration;
         bullet.animate(yPos, containerWidth, delay, duration);
     }
@@ -107,6 +107,10 @@ export default class DanmakuLayer {
         const startOffset = -bullet2TailStart1 / bulletVelocity(bullet2);
         const endOffset = (bullet1HeadEnd2 - containerWidth) / bulletVelocity(bullet1) + this._duration;
 
-        return -Math.min(startOffset, endOffset);
+        return -Math.min(startOffset, endOffset) + this._bulletDelay(bullet1);
+    }
+
+    _bulletDelay(bullet) {
+        return bullet.offset - this._getCurrentTime();
     }
 }
