@@ -107,7 +107,7 @@ export default class DanmakuLayer {
         const startOffset = -bullet2TailStart1 / bulletVelocity(bullet2);
         const endOffset = (bullet1HeadEnd2 - containerWidth) / bulletVelocity(bullet1) + this._duration;
 
-        return -Math.min(startOffset, endOffset) + this._bulletDelay(bullet1);
+        return -Math.min(startOffset - this._bulletDelay(bullet1), endOffset);
     }
 
     _bulletDelay(bullet) {
