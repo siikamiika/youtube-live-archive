@@ -113,6 +113,7 @@
 .chat-sticker-paid {
     padding: 2px;
     line-height: 28px;
+    display: flex;
 }
 
 .chat-sticker-paid .chat-message-author {
@@ -120,19 +121,13 @@
 }
 
 .chat-sticker-paid-info {
-    width: 60%;
-    display: inline-block;
-    vertical-align: top;
 }
 
 .chat-sticker-paid-body {
-    width: 40%;
-    display: inline-block;
+    margin-left: auto;
 }
 
 .chat-sticker-paid-image {
-    max-width: 100%;
-    float: right;
 }
 
 /* badge colors */
