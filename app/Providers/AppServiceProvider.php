@@ -24,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         $skipQueries = [
+            '/^insert into "youtube_live_chat_message".*$/',
             '/^select \* from "jobs".*$/',
         ];
         \DB::listen(function($query) use ($skipQueries) {

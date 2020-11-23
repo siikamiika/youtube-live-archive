@@ -12,12 +12,11 @@ class VideoFile extends Model
     protected $guarded = [];
 
     // TODO use repository pattern
-    // Note: load the Video Channel relationship to avoid an n+1 problem
     public function getUrl(Video $video)
     {
         return sprintf(
             '/storage/video_data/%s/%s/%s',
-            rawurlencode($video->channel->id),
+            rawurlencode($video->channel_id),
             rawurlencode($video->id),
             rawurlencode($this->filename),
         );
@@ -27,7 +26,7 @@ class VideoFile extends Model
     {
         return storage_path(sprintf(
             'app/public/video_data/%s/%s/%s',
-            $video->channel->id,
+            $video->channel_id,
             $video->id,
             $this->filename,
         ));

@@ -8,6 +8,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Artisan;
 use \App\Domain\MediaFile;
 use \App\Domain\SystemCommand;
 use \App\Domain\YoutubeThumbnail;
@@ -119,6 +120,10 @@ class ArchiveYoutubeVideo implements ShouldQueue
 
         $liveChatResourceDownloader = new YoutubeLiveChatResourceDownloader($video);
         if ($liveChatResourceDownloader->openLiveChat()) {
+            Artisan::call(
+                'live_chat:import_raw',
+                ['video_id' => $video->id]
+            );
             $liveChatResourceDownloader->downloadChatResources();
         }
     }
