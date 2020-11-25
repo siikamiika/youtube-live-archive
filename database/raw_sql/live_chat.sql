@@ -24,11 +24,11 @@ CLUSTER youtube_live_chat_message USING youtube_live_chat_message_pkey;
 -- examples
 -- ---------
 
--- get all messages at video starting point
+-- get all messages at or before video starting point
 SELECT *
 FROM youtube_live_chat_message
 WHERE video_id = 'xxxxxxxxxxx'
-    AND time_range @> 0;
+    AND time_range && int4range(-2147483648, 1);
 
 -- get next 100 messages
 SELECT *

@@ -31,15 +31,22 @@ class ImportLiveChatRaw extends Command
         while ($line = stream_get_line($fh, 0x100000, "\n")) {
             $data = json_decode($line, true);
             $offset = intval($data['replayChatItemAction']['videoOffsetTimeMsec']);
-            $durationMsec = 1;
+            if ($offset > 1000000000000) {
+                $this->info('Offset out of range, skipping: '. json_encode($data));
+                continue;
+            }
+            $tickerRenderer = $this->parseTickerRenderer($data);
+            $durationMsec = $tickerRenderer
+                ? intval($tickerRenderer['durationSec']) * 1000
+                : 1;
 
-            $tickerData = $this->parseTicker($data);
-            if ($tickerData) {
-                $messageRenderer = $this->parseTickerMessageRenderer($tickerData);
-                if ($offset === 0) {
+            if ($offset === 0) {
+                $messageRenderer = $tickerRenderer
+                    ? $this->parseTickerMessageRenderer($tickerRenderer)
+                    : $this->parseMessageRenderer($data);
+                if ($messageRenderer) {
                     $offset = $this->parseTimestampText($messageRenderer);
                 }
-                $durationMsec = intval($tickerData['durationSec']) * 1000;
             }
 
             \DB::table('youtube_live_chat_message')->insert([
@@ -55,14 +62,13 @@ class ImportLiveChatRaw extends Command
         return 0;
     }
 
-    private function parseTicker(array $data): ?array
+    private function parseTickerRenderer(array $data): ?array
     {
-        return $data['replayChatItemAction']['actions'][0]['addLiveChatTickerItemAction'] ?? null;
-    }
+        $item = $data['replayChatItemAction']['actions'][0]['addLiveChatTickerItemAction']['item'] ?? null;
+        if (!$item) {
+            return null;
+        }
 
-    private function parseTickerMessageRenderer(array $tickerData): array
-    {
-        $item = $tickerData['item'];
         $tickerRenderer = $item['liveChatTickerPaidMessageItemRenderer']
             ?? $item['liveChatTickerSponsorItemRenderer']
             ?? $item['liveChatTickerPaidStickerItemRenderer']
@@ -70,7 +76,11 @@ class ImportLiveChatRaw extends Command
         if (!$tickerRenderer) {
             throw new \RuntimeException('Unknown ticker renderer: ' . json_encode($item));
         }
+        return $tickerRenderer;
+    }
 
+    private function parseTickerMessageRenderer(array $tickerRenderer): ?array
+    {
         $container = $tickerRenderer['showItemEndpoint']['showLiveChatItemEndpoint']['renderer'] ?? null;
         if (!$container) {
             throw new \RuntimeException('No message renderer container: ' . json_encode($tickerRenderer));
@@ -84,6 +94,19 @@ class ImportLiveChatRaw extends Command
             throw new \RuntimeException('No message renderer: ' . json_encode($container));
         }
         return $messageRenderer;
+    }
+
+    private function parseMessageRenderer(array $data): ?array
+    {
+        $item = $data['replayChatItemAction']['actions'][0]['addChatItemAction']['item'] ?? null;
+        if (!$item) {
+            return null;
+        }
+        return $item['liveChatTextMessageRenderer']
+            ?? $item['liveChatPaidMessageRenderer']
+            ?? $item['liveChatMembershipItemRenderer']
+            ?? $item['liveChatPaidStickerRenderer']
+            ?? null;
     }
 
     private function parseTimestampText(array $renderer): int
