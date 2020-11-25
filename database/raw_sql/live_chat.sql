@@ -12,7 +12,7 @@ CREATE TABLE youtube_live_chat_message (
     data jsonb
 );
 CREATE UNIQUE INDEX youtube_live_chat_message_pkey ON youtube_live_chat_message (video_id, seq);
-CREATE INDEX youtube_live_chat_message_video_time_range ON youtube_live_chat_message USING GIST (video_id, time_range, seq);
+CREATE INDEX youtube_live_chat_message_video_time_range ON youtube_live_chat_message USING GIST (video_id, time_range);
 ALTER TABLE youtube_live_chat_message ADD CONSTRAINT youtube_live_chat_message_videos_fk FOREIGN KEY (video_id) REFERENCES videos (id);
 
 -- ---------
@@ -30,13 +30,12 @@ FROM youtube_live_chat_message
 WHERE video_id = 'xxxxxxxxxxx'
     AND time_range @> 0;
 
--- get all messages in video offset range [220000, 230000)
--- without overlap with the previous maximum sequence (tickers)
+-- get next 100 messages
 SELECT *
 FROM youtube_live_chat_message
 WHERE video_id = 'xxxxxxxxxxx'
-    AND time_range && int4range(220000, 230000)
-    AND seq > 433;
+    AND seq > 433
+LIMIT 100;
 
 -- get all messages in video offset range [520000, 530000)
 -- when previous sequence is unknown (after seek)
