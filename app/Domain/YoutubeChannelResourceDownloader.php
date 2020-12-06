@@ -58,7 +58,7 @@ class YoutubeChannelResourceDownloader
 
     private function getYtInitialData(): ?array
     {
-        if (!preg_match('/window\["ytInitialData"\] = (\{.*?\});\n/', $this->channelHtml, $matches)) {
+        if (!preg_match('/(?:window\["ytInitialData"\]|var ytInitialData) = (\{.*?\});(?:\n|\<)/', $this->channelHtml, $matches)) {
             return null;
         }
         return json_decode($matches[1], true);
