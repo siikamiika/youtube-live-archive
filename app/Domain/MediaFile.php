@@ -94,6 +94,12 @@ class MediaFile
                 continue;
             }
 
+            // for panorama videos
+            // TODO map these into nested array instead
+            if ($line === '[SIDE_DATA]') {
+                break;
+            }
+
             [$k, $v] = explode('=', $line, 2);
 
             if ($k === 'index') {
