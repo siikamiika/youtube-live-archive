@@ -35,7 +35,7 @@ import LiveChat from './live-chat/LiveChat.js';
 
 // live chat
 (async () => {
-    if (!app.liveChatResource) {
+    if (!app.hasLiveChat) {
         return;
     }
 
@@ -43,16 +43,8 @@ import LiveChat from './live-chat/LiveChat.js';
     const liveChatContainer = document.querySelector('#live-chat');
     const danmakuContainer = document.querySelector('#danmaku-container');
 
-    const liveChat = new LiveChat(app.liveChatResource, videoElement, liveChatContainer, danmakuContainer, app.channelId);
-
-    let liveChatIntervalId = null;
-
-    videoElement.addEventListener('playing', (event) => {
-        clearInterval(liveChatIntervalId);
-        liveChatIntervalId = setInterval(() => liveChat.updateLiveChat(), 100);
-    });
-
-    videoElement.addEventListener('pause', (event) => {
-        clearInterval(liveChatIntervalId);
-    });
+    const liveChat = new LiveChat(videoElement, liveChatContainer, danmakuContainer, app.videoId, app.channelId);
+    videoElement.addEventListener('playing', () => liveChat.start());
+    videoElement.addEventListener('seeked', () => liveChat.reload());
+    videoElement.addEventListener('pause', () => liveChat.stop());
 })();

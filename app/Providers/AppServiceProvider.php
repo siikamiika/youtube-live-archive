@@ -24,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         $skipQueries = [
+            '/^select \* from "youtube_live_chat_message".*$/',
             '/^insert into "youtube_live_chat_message".*$/',
             '/^select \* from "jobs".*$/',
         ];

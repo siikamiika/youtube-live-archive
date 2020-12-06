@@ -32,6 +32,10 @@ export default class TimeRangeCache {
         }
     }
 
+    clear() {
+        this._itemsByLengthRange = {};
+    }
+
     *get(time) {
         for (const [lengthRangeKey, itemsInRange] of Object.entries(this._itemsByLengthRange)) {
             const startIndex = this._findIndex(itemsInRange, time - lengthRangeKey);

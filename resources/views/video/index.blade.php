@@ -89,8 +89,8 @@
         </div>
 
         <script id="app-config" type="application/json">
-            {!!  json_encode([
-                'liveChatResource' => $files->live_chat->url ?? null,
+            {!! json_encode([
+                'hasLiveChat' => isset($files->live_chat->url),
                 'videoId' => $video->id,
                 'channelId' => $video->channel->id,
             ]) !!}

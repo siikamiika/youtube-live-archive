@@ -2,16 +2,16 @@ import YoutubeLiveChatParser from './YoutubeLiveChatParser.js';
 import TimeRangeCache from './TimeRangeCache.js';
 
 export default class ChatDataApi {
-    constructor(url, channelId) {
-        this._url = url;
+    constructor(videoId, channelId) {
+        this._videoId = videoId;
         this._parser = new YoutubeLiveChatParser(channelId);
         this._messageCache = [];
+        this._lastSequence = null;
         this._tickerCache = new TimeRangeCache(
             (item) => item.offset,
             (item) => item.offset + item.duration * 1000,
         );
         this._bannerCache = [];
-        this._lineIterator = this._iterateLines();
     }
 
     *getChatMessagesAmount(time, nPrevious) {
@@ -70,51 +70,47 @@ export default class ChatDataApi {
         }
     }
 
-    // https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read
-    async *_iterateLines() {
-        const utf8Decoder = new TextDecoder("utf-8");
-        let response = await fetch(this._url);
-        let reader = response.body.getReader();
-        let {value: chunk, done: readerDone} = await reader.read();
-        chunk = chunk ? utf8Decoder.decode(chunk) : "";
+    _getUrl() {
+        return new URL(`${window.location.protocol}//${window.location.host}/api/live_chat_replay/${this._videoId}`);
+    }
 
-        let re = /\r\n|\n|\r/gm;
-        let startIndex = 0;
-        let result;
-
-        for (;;) {
-            let result = re.exec(chunk);
-            if (!result) {
-                if (readerDone) {
-                    break;
-                }
-                let remainder = chunk.substr(startIndex);
-                ({value: chunk, done: readerDone} = await reader.read());
-                chunk = remainder + (chunk ? utf8Decoder.decode(chunk) : "");
-                startIndex = re.lastIndex = 0;
-                continue;
+    async fetchInitialChatItems() {
+        const url = this._getUrl();
+        const result = await (await fetch(url)).json();
+        for (const {sequence, data} of result.data) {
+            for (const chatItem of this._parser.parse(data)) {
+                this._cacheChatItem(chatItem);
             }
-            yield chunk.substring(startIndex, result.index);
-            startIndex = re.lastIndex;
-        }
-        if (startIndex < chunk.length) {
-            // last line didn't end in a newline char
-            yield chunk.substr(startIndex);
+            this._lastSequence = sequence;
         }
     }
 
     async fetchNewChatItems(time) {
-        if (this._messageCache.length === 0 || this._messageCache[this._messageCache.length - 1].offset < time) {
-            for (;;) {
-                const {value, done} = await this._lineIterator.next();
-                if (done) { break; }
-                let lastChatItem = null;
-                for (const chatItem of this._parser.parse(JSON.parse(value))) {
+        if (this._messageCache.length === 0 || this._messageCache[this._messageCache.length - 1].offset < time + 5000) {
+            const url = this._getUrl();
+            url.search = new URLSearchParams({lastSequence: this._lastSequence}).toString();
+            const result = await (await fetch(url)).json();
+            for (const {sequence, data} of result.data) {
+                for (const chatItem of this._parser.parse(data)) {
                     this._cacheChatItem(chatItem);
-                    lastChatItem = chatItem;
                 }
-                if (lastChatItem && lastChatItem.offset > time) { break; }
+                this._lastSequence = sequence;
             }
+        }
+    }
+
+    async fetchChatItemsAt(currentTime) {
+        this._lastSequence = null;
+        this._messageCache = [];
+        this._tickerCache.clear();
+        const url = this._getUrl();
+        url.search = new URLSearchParams({currentTime}).toString();
+        const result = await (await fetch(url)).json();
+        for (const {sequence, data} of result.data) {
+            for (const chatItem of this._parser.parse(data)) {
+                this._cacheChatItem(chatItem);
+            }
+            this._lastSequence = sequence;
         }
     }
 
@@ -131,12 +127,14 @@ export default class ChatDataApi {
                 this._tickerCache.add(chatItem);
                 break;
             case 'CHAT_BANNER':
+                // TODO handle seek (also range in backend)
                 this._bannerCache.push(chatItem);
                 break;
         }
     }
 
     _findChatIndex(time) {
+        if (this._messageCache.length === 0) { return -1; }
         let lo = 0;
         let hi = this._messageCache.length - 1;
         while (lo !== hi) {
