@@ -91,6 +91,7 @@ export default class LiveChat {
         console.debug('reload before');
         const currentTimeMs = this._videoElement.currentTime * 1000;
         await this._chatDataApi.fetchChatItemsAt(currentTimeMs);
+        await this._chatDataApi.fetchPreviousChatItems(); // TODO do this in backend
         console.debug('reload after');
     }
 }

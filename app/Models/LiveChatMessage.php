@@ -38,16 +38,15 @@ class LiveChatMessage extends Model
         return $query;
     }
 
-    // fetch all events 60 seconds before and after current time
+    // fetch all events 60 seconds after current time
     // when previous cursor is unknown (after seek or in the beginning)
     public function scopeWhereCurrentTime($query, $time)
     {
         $start = -2147483648;
         $end = 60000;
         if (isset($time) && $time > 5000) {
-            $time = (int) round($time);
-            $start = $time - 60000;
-            $end = $time + 60000;
+            $start = (int) round($time);
+            $end = $start + 60000;
         }
         return $query->whereRaw('time_range && ?', [sprintf('[%s,%s)', $start, $end)]);
     }

@@ -42,7 +42,7 @@ export default class ChatDataApi {
     }
 
     async *getPreviousChatMessagesReverse(time, nPrevious, currentId) {
-        await this._fetchPreviousChatItems();
+        await this.fetchPreviousChatItems();
         const startIndex = this._findChatIndex(time + 1); // in case there are many
         let previousIdFound = false;
         for (let i = startIndex; i > startIndex - nPrevious && i >= 0; i--) {
@@ -105,7 +105,7 @@ export default class ChatDataApi {
         }
     }
 
-    async _fetchPreviousChatItems() {
+    async fetchPreviousChatItems() {
         if (!this._lastSequenceReverse) { return; }
         const lastSequenceReversePrev = this._lastSequenceReverse;
         const url = this._getUrl();
