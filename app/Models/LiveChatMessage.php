@@ -21,7 +21,7 @@ class LiveChatMessage extends Model
         return $this->belongsTo(Video::class);
     }
 
-    // use previously acquired cursor to fetch next 100 events
+    // use previously acquired cursor to fetch next 500 events
     public function scopeWhereLastSequence($query, $sequence)
     {
         $query->where('seq', '>', $sequence ?? -1);
@@ -29,7 +29,7 @@ class LiveChatMessage extends Model
         return $query;
     }
 
-    // use previously acquired cursor to fetch previous 100 events
+    // use previously acquired cursor to fetch previous 500 events
     public function scopeWhereLastSequenceReverse($query, $sequence)
     {
         $query->where('seq', '<', $sequence);

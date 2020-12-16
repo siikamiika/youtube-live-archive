@@ -7,6 +7,7 @@ export default class ChatDataApi {
         this._parser = new YoutubeLiveChatParser(channelId);
         this._messageCache = [];
         this._lastSequence = null;
+        this._lastSequenceReverse = null;
         this._tickerCache = new TimeRangeCache(
             (item) => item.offset,
             (item) => item.offset + item.duration * 1000,
@@ -40,7 +41,8 @@ export default class ChatDataApi {
         }
     }
 
-    *getPreviousChatMessagesReverse(time, nPrevious, currentId) {
+    async *getPreviousChatMessagesReverse(time, nPrevious, currentId) {
+        await this._fetchPreviousChatItems();
         const startIndex = this._findChatIndex(time + 1); // in case there are many
         let previousIdFound = false;
         for (let i = startIndex; i > startIndex - nPrevious && i >= 0; i--) {
@@ -86,25 +88,11 @@ export default class ChatDataApi {
     }
 
     async fetchNewChatItems(time) {
-        if (this._messageCache.length === 0 || this._messageCache[this._messageCache.length - 1].offset < time + 5000) {
-            const url = this._getUrl();
-            url.search = new URLSearchParams({lastSequence: this._lastSequence}).toString();
-            const result = await (await fetch(url)).json();
-            for (const {sequence, data} of result.data) {
-                for (const chatItem of this._parser.parse(data)) {
-                    this._cacheChatItem(chatItem);
-                }
-                this._lastSequence = sequence;
-            }
-        }
-    }
-
-    async fetchChatItemsAt(currentTime) {
-        this._lastSequence = null;
-        this._messageCache = [];
-        this._tickerCache.clear();
+        if (this._lastSequence === null) { return; }
+        if (this._messageCache.length > 0 && this._messageCache[this._messageCache.length - 1].offset >= time + 5000) { return; }
+        const lastSequencePrev = this._lastSequence;
         const url = this._getUrl();
-        url.search = new URLSearchParams({currentTime}).toString();
+        url.search = new URLSearchParams({lastSequence: this._lastSequence}).toString();
         const result = await (await fetch(url)).json();
         for (const {sequence, data} of result.data) {
             for (const chatItem of this._parser.parse(data)) {
@@ -112,6 +100,58 @@ export default class ChatDataApi {
             }
             this._lastSequence = sequence;
         }
+        if (lastSequencePrev === this._lastSequence) {
+            this._lastSequence = null;
+        }
+    }
+
+    async _fetchPreviousChatItems() {
+        if (!this._lastSequenceReverse) { return; }
+        const lastSequenceReversePrev = this._lastSequenceReverse;
+        const url = this._getUrl();
+        url.search = new URLSearchParams({lastSequenceReverse: this._lastSequenceReverse}).toString();
+        const result = await (await fetch(url)).json();
+        // prevent race
+        if (lastSequenceReversePrev !== this._lastSequenceReverse) { return; }
+        const messages = [];
+        for (const {sequence, data} of result.data) {
+            for (const chatItem of this._parser.parse(data)) {
+                switch (chatItem.type) {
+                    case 'CHAT_MESSAGE_NORMAL':
+                    case 'CHAT_MESSAGE_PAID':
+                    case 'CHAT_NEW_MEMBER':
+                    case 'CHAT_STICKER_PAID':
+                        messages.push({sequence, chatItem});
+                        break;
+                }
+            }
+            this._lastSequenceReverse = sequence;
+        }
+        this._messageCache = messages
+            .sort(({sequence: a}, {sequence: b}) => a - b)
+            .map(({chatItem}) => chatItem)
+            .concat(this._messageCache);
+    }
+
+    async fetchChatItemsAt(currentTime) {
+        const url = this._getUrl();
+        url.search = new URLSearchParams({currentTime}).toString();
+        const result = await (await fetch(url)).json();
+        this._messageCache = [];
+        this._tickerCache.clear();
+        this._lastSequenceReverse = null;
+        let sequencePrev = null;
+        for (const {sequence, data} of result.data) {
+            for (const chatItem of this._parser.parse(data)) {
+                this._cacheChatItem(chatItem);
+            }
+            // ignore past tickers
+            if (sequencePrev === null || sequence - 1 !== sequencePrev) {
+                this._lastSequenceReverse = sequence;
+            }
+            sequencePrev = sequence;
+        }
+        this._lastSequence = sequencePrev;
     }
 
     _cacheChatItem(chatItem) {

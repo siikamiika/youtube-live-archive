@@ -49,7 +49,7 @@ export default class LiveChatRenderer {
         }
     }
 
-    _renderPastMessages() {
+    async _renderPastMessages() {
         if (this._pastMessagesPending) { return; }
         this._pastMessagesPending = true;
 
@@ -64,7 +64,7 @@ export default class LiveChatRenderer {
         const containerFragment = document.createDocumentFragment();
 
         const eventsReverse = this._getPreviousChatMessagesReverse(firstOffset, 100, firstId);
-        for (const chatItem of eventsReverse) {
+        for await (const chatItem of eventsReverse) {
             const chatMessage = ChatMessage.create(chatItem);
             containerFragment.prepend(chatMessage.element);
         }

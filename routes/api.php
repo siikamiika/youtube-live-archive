@@ -24,11 +24,13 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 // live chat
 Route::get('/live_chat_replay/{video_id}', function (Request $request, string $video_id) {
     $lastSequence = $request->query('lastSequence');
+    $lastSequenceReverse = $request->query('lastSequenceReverse');
     $currentTime = $request->query('currentTime');
-    $query = LiveChatMessage::query()
-        ->where('video_id', $video_id);
-    if ($lastSequence && $lastSequence > 0) {
+    $query = LiveChatMessage::query()->where('video_id', $video_id);
+    if ($lastSequence) {
         $query->whereLastSequence($lastSequence);
+    } elseif ($lastSequenceReverse) {
+        $query->whereLastSequenceReverse($lastSequenceReverse);
     } else {
         $query->whereCurrentTime($currentTime);
     }
