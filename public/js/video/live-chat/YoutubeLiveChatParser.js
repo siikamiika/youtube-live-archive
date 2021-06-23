@@ -237,8 +237,8 @@ export default class YoutubeLiveChatParser {
                 }
                 if (duration === null) {
                     const memberBadgePatterns = [
-                        /Member \((?:(\d+) years?\, (\d+) months?)|(?:(\d+) years?)|(?:(\d+) months?)\)/,
-                        /メンバー（(?:(\d+) 年 (\d+) か月)|(?:(\d+) 年)|(?:(\d+) か月)）/, // TODO over １ 年, how is it actually formatted?
+                        /Member \((?:(?:(\d+) years?\, (\d+) months?)|(?:(\d+) years?)|(?:(\d+) months?))\)/,
+                        /メンバー（(?:(?:(\d+) 年 (\d+) か月)|(?:(\d+) 年)|(?:(\d+) か月))）/, // TODO over １ 年, how is it actually formatted?
                     ];
                     let m = null;
                     for (const re of memberBadgePatterns) {
