@@ -19,7 +19,7 @@ class ArchiveYoutubeVideo implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    const YTDL_BIN = 'youtube-dl-custom';
+    const YTDL_BIN = 'yt-dlp';
 
     private $videoId = null;
     private $force = null;
