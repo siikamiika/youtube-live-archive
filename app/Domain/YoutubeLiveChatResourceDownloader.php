@@ -116,10 +116,28 @@ class YoutubeLiveChatResourceDownloader
             if (!array_key_exists('customThumbnail', $badgeRenderer)) { continue; }
 
             $duration = null;
-            if (preg_match('/New member/', $badgeRenderer['tooltip'])) {
-                $duration = 0;
-            } else {
-                if (!preg_match('/Member \((?:(\d+) years?\, (\d+) months?)|(?:(\d+) years?)|(?:(\d+) months?)\)/', $badgeRenderer['tooltip'], $matches)) {
+            $newMemberPatterns = [
+                '/New member/',
+                '/新規メンバー/',
+            ];
+
+            foreach ($newMemberPatterns as $re) {
+                if (preg_match($re, $badgeRenderer['tooltip'])) {
+                    $duration = 0;
+                    break;
+                }
+            }
+            if ($duration === null) {
+                $memberBadgePatterns = [
+                    '/Member \((?:(\d+) years?\, (\d+) months?)|(?:(\d+) years?)|(?:(\d+) months?)\)/',
+                    '/メンバー（(?:(\d+) 年 (\d+) か月)|(?:(\d+) 年)|(?:(\d+) か月)）/', // TODO over １ 年, how is it actually formatted?
+                ];
+                $matched = false;
+                foreach ($memberBadgePatterns as $re) {
+                    $matched = preg_match($re, $badgeRenderer['tooltip'], $matches);
+                    if ($matched) { break; }
+                }
+                if (!$matched) {
                     throw new \RuntimeException('Cannot parse member badge duration');
                 }
 

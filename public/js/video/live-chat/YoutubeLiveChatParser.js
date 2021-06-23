@@ -225,10 +225,26 @@ export default class YoutubeLiveChatParser {
                 }
             } else if (badgeRenderer.customThumbnail) {
                 let duration = null;
-                if (/New member/.test(badgeRenderer.tooltip)) {
-                    duration = 0;
-                } else {
-                    const m = /Member \((?:(\d+) years?\, (\d+) months?)|(?:(\d+) years?)|(?:(\d+) months?)\)/.exec(badgeRenderer.tooltip);
+                const newMemberPatterns = [
+                    /New member/,
+                    /新規メンバー/,
+                ];
+                for (const re of newMemberPatterns) {
+                    if (re.test(badgeRenderer.tooltip)) {
+                        duration = 0;
+                        break;
+                    }
+                }
+                if (duration === null) {
+                    const memberBadgePatterns = [
+                        /Member \((?:(\d+) years?\, (\d+) months?)|(?:(\d+) years?)|(?:(\d+) months?)\)/,
+                        /メンバー（(?:(\d+) 年 (\d+) か月)|(?:(\d+) 年)|(?:(\d+) か月)）/, // TODO over １ 年, how is it actually formatted?
+                    ];
+                    let m = null;
+                    for (const re of memberBadgePatterns) {
+                        m = re.exec(badgeRenderer.tooltip);
+                        if (m) { break; }
+                    }
                     if (!m) {
                         throw new Error('Cannot parse member badge duration');
                     }
